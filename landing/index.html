@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scikit-Learner — Train ML models in your browser</title>
+<meta name="description" content="Train and compare 49 scikit-learn models — regression and classification — entirely in your browser. No signup, no server, no uploads. Powered by Pyodide." />
+<link rel="icon" type="image/png" href="img/chart-increasing.png" />
+
+<meta property="og:title" content="Scikit-Learner — Train ML models in your browser" />
+<meta property="og:description" content="49 scikit-learn models. Zero backend. Runs on Pyodide." />
+<meta property="og:image" content="img/learner.png" />
+<meta property="og:url" content="https://www.scikit-learner.app/" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<style>
+  :root {
+    --accent: #0d6efd;
+    --accent-dark: #0a58ca;
+    --ink: #0b1220;
+    --muted: #5b6473;
+    --line: #e6e8ec;
+    --bg: #ffffff;
+    --bg-soft: #f7f8fa;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 1.25rem; }
+
+  /* Nav */
+  nav.top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.1rem 1.25rem;
+    max-width: 1080px; margin: 0 auto;
+  }
+  nav.top .brand {
+    display: flex; align-items: center; gap: 0.55rem;
+    font-weight: 600; color: var(--ink); font-size: 1.05rem;
+  }
+  nav.top .brand img { width: 26px; height: 26px; }
+  nav.top .brand .wasm {
+    font-size: 0.65rem; padding: 0.12rem 0.5rem;
+    background: rgba(13,110,253,0.08); color: var(--accent);
+    border-radius: 999px; font-weight: 500; letter-spacing: 0.02em;
+  }
+  nav.top .links { display: flex; gap: 1.4rem; align-items: center; }
+  nav.top .links a { color: var(--muted); font-size: 0.95rem; }
+  nav.top .links a:hover { color: var(--ink); text-decoration: none; }
+
+  /* Hero */
+  .hero {
+    padding: 4rem 0 3rem;
+    text-align: center;
+  }
+  .hero .eyebrow {
+    display: inline-block;
+    font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    line-height: 1.08; margin: 0 0 1.1rem;
+    letter-spacing: -0.02em; font-weight: 700;
+  }
+  .hero h1 .accent { color: var(--accent); }
+  .hero p.lede {
+    font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+    color: var(--muted);
+    max-width: 640px; margin: 0 auto 2rem;
+  }
+  .cta-row { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-bottom: 0.6rem; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.95rem 1.8rem;
+    border-radius: var(--radius);
+    font-weight: 600; font-size: 1.05rem;
+    border: 1px solid transparent;
+    transition: transform 0.06s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-dark); color: white; }
+  .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  .btn-ghost:hover { border-color: var(--ink); }
+  .cta-sub { color: var(--muted); font-size: 0.85rem; margin-top: 0.4rem; }
+
+  /* Screenshot */
+  .shot {
+    margin: 2.5rem auto 0; max-width: 980px;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: 0 14px 60px -22px rgba(13,18,32,0.25);
+    overflow: hidden; background: var(--bg-soft);
+  }
+  .shot img { display: block; width: 100%; height: auto; }
+
+  /* Features */
+  section.features { padding: 4rem 0 2rem; }
+  .grid {
+    display: grid; gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+  .card {
+    padding: 1.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+  }
+  .card .icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(13,110,253,0.10); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; margin-bottom: 0.9rem;
+  }
+  .card h3 { margin: 0 0 0.4rem; font-size: 1.1rem; font-weight: 600; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+  /* How */
+  section.how {
+    padding: 3rem 0; background: var(--bg-soft);
+    margin-top: 3rem; border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  section.how h2,
+  section.features h2,
+  section.cta-final h2 {
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    margin: 0 0 0.5rem; letter-spacing: -0.01em;
+  }
+  section.how p.sub,
+  section.features p.sub {
+    color: var(--muted); margin: 0 0 2rem; max-width: 620px;
+  }
+  .steps { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); counter-reset: step; }
+  .step { padding: 1.25rem; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); position: relative; }
+  .step::before {
+    counter-increment: step;
+    content: counter(step);
+    position: absolute; top: -14px; left: 16px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 600;
+  }
+  .step h4 { margin: 0.2rem 0 0.4rem; font-size: 1rem; font-weight: 600; }
+  .step p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+  /* Models */
+  section.models { padding: 4rem 0 2rem; }
+  .models-grid {
+    display: grid; gap: 1rem; grid-template-columns: 1fr 1fr;
+  }
+  @media (max-width: 640px) { .models-grid { grid-template-columns: 1fr; } }
+  .models-col {
+    padding: 1.5rem; border: 1px solid var(--line); border-radius: var(--radius);
+  }
+  .models-col h3 { margin: 0 0 0.2rem; font-size: 1.1rem; }
+  .models-col .count { color: var(--accent); font-weight: 600; font-size: 0.9rem; }
+  .models-col ul {
+    margin: 1rem 0 0; padding: 0; list-style: none;
+    color: var(--muted); font-size: 0.92rem;
+  }
+  .models-col li { padding: 0.3rem 0; border-bottom: 1px dashed var(--line); }
+  .models-col li:last-child { border-bottom: 0; }
+
+  /* Final CTA */
+  section.cta-final {
+    padding: 4rem 0 5rem; text-align: center;
+  }
+  section.cta-final p { color: var(--muted); margin: 0 0 2rem; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 2rem 0; color: var(--muted); font-size: 0.9rem;
+  }
+  footer .container {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+  }
+  footer .made { font-size: 0.85rem; }
+
+  @media (max-width: 600px) {
+    nav.top .links { display: none; }
+    .hero { padding: 2.5rem 0 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <a href="/" class="brand">
+    <img src="img/chart-increasing.png" alt="" />
+    <span>Scikit-Learner</span>
+    <span class="wasm">WASM</span>
+  </a>
+  <div class="links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#models">Models</a>
+    <a href="https://github.com/yanndebray/scikit-learner" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</nav>
+
+<header class="hero container">
+  <span class="eyebrow">Browser-native scikit-learn</span>
+  <h1>
+    Train ML models<br />
+    <span class="accent">without leaving your browser.</span>
+  </h1>
+  <p class="lede">
+    49 scikit-learn models, full cross-validation, instant Plotly visualisations.
+    No signup. No data upload. Your CSV never leaves your machine.
+  </p>
+  <div class="cta-row">
+    <a href="https://play.scikit-learner.app" class="btn btn-primary">
+      Play &nbsp;→
+    </a>
+    <a href="https://github.com/yanndebray/scikit-learner" class="btn btn-ghost" target="_blank" rel="noopener">
+      View source
+    </a>
+  </div>
+  <p class="cta-sub">Free · runs on Pyodide · first load ~10 s, then cached</p>
+
+  <div class="shot">
+    <img src="img/learner.png" alt="Scikit-Learner: scatter plot of the Airfoil Self-Noise dataset coloured by target, with three trained models compared in the left panel" />
+  </div>
+</header>
+
+<section class="features container" id="features">
+  <h2>Why it's different</h2>
+  <p class="sub">All the power of scikit-learn, none of the ops. The whole runtime ships in the page.</p>
+  <div class="grid">
+    <div class="card">
+      <div class="icon">⚡</div>
+      <h3>Runs in the browser</h3>
+      <p>Python + scikit-learn compiled to WebAssembly via Pyodide. No server, no Docker, no Render bill.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🔒</div>
+      <h3>Your data stays local</h3>
+      <p>CSV uploads never touch a network. Everything runs inside your tab — air-gapped by default.</p>
+    </div>
+    <div class="card">
+      <div class="icon">📊</div>
+      <h3>49 models, side by side</h3>
+      <p>27 regressors and 22 classifiers across linear, tree, ensemble, SVM, neighbours and neural nets — compared on the same chart.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🎯</div>
+      <h3>Real cross-validation</h3>
+      <p>3 / 5 / 10-fold CV with R², MSE, RMSE, MAE for regression; accuracy, F1, precision, recall, ROC for classification.</p>
+    </div>
+    <div class="card">
+      <div class="icon">📦</div>
+      <h3>Exportable joblib</h3>
+      <p>Download any trained model as a real <code>.joblib</code> file ready to <code>load()</code> in your own Python project.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🧪</div>
+      <h3>Sample datasets built in</h3>
+      <p>Iris, Wine, Breast Cancer, Digits, Diabetes, Airfoil Self-Noise — click and train, no upload needed.</p>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="container">
+    <h2>Four clicks to a trained model</h2>
+    <p class="sub">No notebooks. No environment setup. No <code>pip install</code>.</p>
+    <div class="steps">
+      <div class="step">
+        <h4>Load data</h4>
+        <p>Drop a CSV or pick a sample dataset. Classification or regression is auto-detected.</p>
+      </div>
+      <div class="step">
+        <h4>Pick features</h4>
+        <p>Choose your target column and predictors from a clean side panel.</p>
+      </div>
+      <div class="step">
+        <h4>Train models</h4>
+        <p>Select one or many. Cross-validation runs automatically.</p>
+      </div>
+      <div class="step">
+        <h4>Compare &amp; export</h4>
+        <p>Inspect residuals, ROC, confusion matrices — then download the winning model.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="models container" id="models">
+  <h2>Every scikit-learn model worth comparing</h2>
+  <p class="sub">Two task types, six families each. All run client-side.</p>
+  <div class="models-grid">
+    <div class="models-col">
+      <h3>Regression</h3>
+      <div class="count">27 models</div>
+      <ul>
+        <li>Linear · Ridge · Lasso · ElasticNet · Bayesian</li>
+        <li>Decision Tree · Extra Tree</li>
+        <li>Random Forest · Gradient Boosting · HistGradientBoosting · AdaBoost · Bagging</li>
+        <li>SVR (linear / RBF / poly)</li>
+        <li>K-Neighbours · Radius Neighbours</li>
+        <li>MLP Regressor</li>
+      </ul>
+    </div>
+    <div class="models-col">
+      <h3>Classification</h3>
+      <div class="count">22 models</div>
+      <ul>
+        <li>Logistic Regression · Ridge · SGD</li>
+        <li>Decision Tree · Extra Tree</li>
+        <li>Random Forest · Gradient Boosting · HistGradientBoosting · AdaBoost · Bagging</li>
+        <li>SVC (linear / RBF / poly)</li>
+        <li>K-Neighbours · Nearest Centroid</li>
+        <li>Gaussian / Multinomial / Bernoulli Naive Bayes</li>
+        <li>MLP Classifier · LDA · QDA</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="cta-final container">
+  <h2>Stop spinning up notebooks.</h2>
+  <p>Open a tab, train a model, ship the joblib.</p>
+  <a href="https://play.scikit-learner.app" class="btn btn-primary">
+    Play &nbsp;→
+  </a>
+</section>
+
+<footer>
+  <div class="container">
+    <div>© <span id="year"></span> Scikit-Learner · built on <a href="https://pyodide.org" target="_blank" rel="noopener">Pyodide</a></div>
+    <div class="made">
+      <a href="https://github.com/yanndebray/scikit-learner" target="_blank" rel="noopener">Source on GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>

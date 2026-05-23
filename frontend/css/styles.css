@@ -1,0 +1,1007 @@
+/* Scikit-Learner - Styles */
+
+:root {
+    --panel-bg: #f8f9fa;
+    --panel-border: #dee2e6;
+    --header-bg: #e9ecef;
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Toolbar */
+.toolbar {
+    flex-shrink: 0;
+}
+
+/* Main Container - 3 Column Layout */
+.main-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Left Panel - Models */
+.left-panel {
+    width: 280px;
+    min-width: 280px;
+    background: var(--panel-bg);
+    border-right: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Center Panel - Visualizations */
+.center-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fff;
+}
+
+/* Right Panel - Settings */
+.right-panel {
+    width: 250px;
+    min-width: 250px;
+    background: var(--panel-bg);
+    border-left: 1px solid var(--panel-border);
+    overflow-y: auto;
+}
+
+/* Panel Headers */
+.panel-header {
+    background: var(--header-bg);
+    padding: 8px 12px;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #495057;
+    border-bottom: 1px solid var(--panel-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Panel Sections */
+.panel-section {
+    border-bottom: 1px solid var(--panel-border);
+}
+
+/* Model List */
+.model-list {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 200px;
+}
+
+.model-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--panel-border);
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.model-item:hover {
+    background-color: #e9ecef;
+}
+
+.model-item.selected {
+    background-color: #cfe2ff;
+    border-left: 3px solid var(--primary-color);
+}
+
+.model-item .model-name {
+    font-weight: 500;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.model-item .model-meta {
+    font-size: 11px;
+    color: #6c757d;
+    margin-top: 3px;
+}
+
+.model-item .model-score {
+    font-weight: 600;
+    color: var(--success-color);
+}
+
+.model-item .model-score.poor {
+    color: var(--danger-color);
+}
+
+.model-item .model-score.medium {
+    color: var(--warning-color);
+}
+
+/* Model Category Badge */
+.category-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.category-badge.linear { background: #d1e7dd; color: #0f5132; }
+.category-badge.tree { background: #fff3cd; color: #664d03; }
+.category-badge.ensemble { background: #cff4fc; color: #055160; }
+.category-badge.svm { background: #f8d7da; color: #842029; }
+.category-badge.neighbors { background: #e2d9f3; color: #432874; }
+.category-badge.neural { background: #d3d3d3; color: #333; }
+
+/* Available Models */
+.available-models {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 150px;
+}
+
+.model-category {
+    padding: 6px 12px;
+    background: #e9ecef;
+    font-size: 11px;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Task type tags for model categories */
+.task-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.task-tag.regression {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.task-tag.classification {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.available-model-item {
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.available-model-item:hover {
+    background: #e9ecef;
+}
+
+.available-model-item input[type="checkbox"] {
+    margin: 0;
+}
+
+/* Visualization Area */
+#visualizationArea {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Plot Container */
+.plot-container {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+}
+
+/* Tabs */
+#vizTabs {
+    background: #f8f9fa;
+    border-bottom: 1px solid var(--panel-border);
+}
+
+#vizTabs .nav-link {
+    font-size: 12px;
+    padding: 8px 16px;
+    color: #495057;
+    border-radius: 0;
+}
+
+#vizTabs .nav-link.active {
+    background: #fff;
+    border-bottom-color: #fff;
+}
+
+#vizTabs .nav-link i {
+    margin-right: 4px;
+}
+
+.tab-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+.tab-pane {
+    height: 100%;
+}
+
+/* Info Bar */
+.info-bar {
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* Buttons */
+.btn-sm {
+    font-size: 12px;
+}
+
+/* Form Controls */
+.form-select-sm, .form-control-sm {
+    font-size: 12px;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+/* Tables */
+.table-sm {
+    font-size: 12px;
+}
+
+/* Modals */
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state h5 {
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 13px;
+}
+
+/* Training Progress */
+.training-progress {
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin: 16px;
+}
+
+.training-progress .progress {
+    height: 8px;
+    margin-top: 8px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .left-panel {
+        width: 240px;
+        min-width: 240px;
+    }
+    .right-panel {
+        width: 220px;
+        min-width: 220px;
+    }
+}
+
+@media (max-width: 992px) {
+    .main-container {
+        flex-direction: column;
+    }
+    .left-panel, .right-panel {
+        width: 100%;
+        min-width: 100%;
+        max-height: 200px;
+    }
+    .center-panel {
+        min-height: 400px;
+    }
+}
+
+/* Tooltips */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background: #333;
+    color: #fff;
+    font-size: 11px;
+    white-space: nowrap;
+    border-radius: 4px;
+    z-index: 1000;
+}
+
+/* Model comparison table */
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.comparison-table th,
+.comparison-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.comparison-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.comparison-table tr:hover {
+    background: #f8f9fa;
+}
+
+.comparison-table .rank-1 {
+    background: #d4edda;
+}
+
+.comparison-table .rank-2 {
+    background: #fff3cd;
+}
+
+.comparison-table .rank-3 {
+    background: #f8d7da;
+}
+
+/* Feature importance bars */
+.feature-bar {
+    height: 16px;
+    background: var(--primary-color);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.feature-importance-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.feature-importance-item .label {
+    width: 100px;
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.feature-importance-item .bar-container {
+    flex: 1;
+    height: 16px;
+    background: #e9ecef;
+    border-radius: 2px;
+    margin: 0 8px;
+}
+
+.feature-importance-item .value {
+    width: 50px;
+    font-size: 11px;
+    text-align: right;
+}
+
+/* Welcome View - Redesigned */
+.welcome-view {
+    display: flex;
+    gap: 20px;
+    height: 100%;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    overflow-y: auto;
+}
+
+.welcome-main {
+    flex: 1;
+    max-width: 480px;
+}
+
+.welcome-sidebar {
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Welcome Card */
+.welcome-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.welcome-card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    font-weight: 600;
+    font-size: 14px;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.welcome-card-header i {
+    color: #3b82f6;
+}
+
+.welcome-card-header small {
+    font-weight: 400;
+    color: #94a3b8;
+    margin-left: auto;
+    font-size: 11px;
+}
+
+.welcome-card-footer {
+    padding: 12px;
+    background: #f8fafc;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* Dataset List */
+.dataset-list {
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.dataset-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s;
+}
+
+.dataset-item:hover {
+    background: #f8fafc;
+}
+
+.dataset-item:last-child {
+    border-bottom: none;
+}
+
+.dataset-icon {
+    font-size: 24px;
+    width: 36px;
+    text-align: center;
+}
+
+.dataset-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.dataset-name {
+    font-weight: 500;
+    font-size: 13px;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dataset-meta {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.type-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.type-badge.regression {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.type-badge.classification {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.dataset-load-btn {
+    opacity: 0;
+    padding: 4px 10px;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.dataset-item:hover .dataset-load-btn {
+    opacity: 1;
+}
+
+.dataset-load {
+    opacity: 0;
+    color: #3b82f6;
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.dataset-item:hover .dataset-load {
+    opacity: 1;
+    transform: translateX(4px);
+}
+
+/* Upload Button */
+.upload-btn {
+    width: 100%;
+    padding: 10px;
+    border: 2px dashed #cbd5e1;
+    background: transparent;
+    border-radius: 8px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.upload-btn:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: #eff6ff;
+}
+
+/* Task Actions */
+.task-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.task-btn {
+    flex: 1;
+    padding: 14px 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.task-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.task-btn.regression {
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    color: #fff;
+}
+
+.task-btn.classification {
+    background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+    color: #fff;
+}
+
+.task-btn.active {
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.2);
+    transform: scale(0.98);
+}
+
+.task-btn.active:hover {
+    transform: scale(0.98);
+}
+
+.task-btn i {
+    font-size: 20px;
+    display: block;
+    margin-bottom: 6px;
+    opacity: 0.9;
+}
+
+.task-btn span {
+    font-weight: 600;
+    font-size: 13px;
+    display: block;
+}
+
+.task-btn small {
+    font-size: 10px;
+    opacity: 0.8;
+}
+
+/* Workflow Card */
+.workflow-card {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-radius: 10px;
+    padding: 14px;
+    color: #fff;
+}
+
+.workflow-header {
+    font-weight: 600;
+    font-size: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.workflow-header i {
+    color: #fbbf24;
+}
+
+.workflow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.workflow-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.workflow-step span {
+    width: 20px;
+    height: 20px;
+    background: #475569;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #cbd5e1;
+}
+
+/* Concepts Card */
+.concepts-card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 14px;
+}
+
+.concepts-header {
+    font-weight: 600;
+    font-size: 12px;
+    color: #334155;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.concepts-header i {
+    color: #f59e0b;
+}
+
+.concept {
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.concept:last-child {
+    margin-bottom: 0;
+}
+
+.concept strong {
+    font-size: 11px;
+    display: block;
+}
+
+.concept span {
+    font-size: 10px;
+}
+
+.regression-concept {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+}
+
+.regression-concept strong {
+    color: #1d4ed8;
+}
+
+.regression-concept span {
+    color: #3b82f6;
+}
+
+.classification-concept {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+}
+
+.classification-concept strong {
+    color: #047857;
+}
+
+.classification-concept span {
+    color: #10b981;
+}
+
+/* Collapsible panel header */
+.panel-header.collapsible {
+    cursor: pointer;
+    user-select: none;
+}
+
+.panel-header.collapsible:hover {
+    background: #dfe5ec;
+}
+
+.panel-header .bi-chevron-down {
+    transition: transform 0.2s;
+    font-size: 10px;
+    margin-right: 4px;
+}
+
+.panel-header .bi-chevron-down.collapsed {
+    transform: rotate(-90deg);
+}
+
+/* Task Type Badge in toolbar */
+.task-type-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.task-type-badge.regression {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.task-type-badge.classification {
+    background: #cff4fc;
+    color: #055160;
+}
+
+/* Modal Dataset List */
+.sample-dataset-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.modal-dataset-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.15s;
+    margin-bottom: 4px;
+}
+
+.modal-dataset-item:hover {
+    background: #f1f5f9;
+}
+
+.modal-dataset-item:last-child {
+    margin-bottom: 0;
+}
+
+.modal-dataset-icon {
+    font-size: 24px;
+    width: 36px;
+    text-align: center;
+}
+
+.modal-dataset-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.modal-dataset-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-dataset-meta {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* Minimal Welcome View */
+.welcome-view-minimal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.welcome-content {
+    text-align: center;
+    padding: 40px;
+}
+
+.welcome-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.welcome-icon i {
+    font-size: 36px;
+    color: #fff;
+}
+
+.welcome-content h4 {
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.welcome-content p {
+    margin-bottom: 24px;
+}
+
+/* Export Modal */
+.export-model-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.export-model-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    background: #f8fafc;
+}
+
+.export-model-item:hover {
+    background: #f1f5f9;
+}
+
+.export-model-item input[type="checkbox"] {
+    margin: 0;
+}
+
+.export-model-item .model-info {
+    flex: 1;
+}
+
+.export-model-item .model-name {
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.export-model-item .model-score {
+    font-size: 11px;
+    color: #64748b;
+}

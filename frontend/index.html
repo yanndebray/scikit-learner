@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scikit-Learner · WASM</title>
+    <link rel="icon" type="image/png" href="img/chart-increasing.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        #pyodide-overlay {
+            position: fixed; inset: 0; background: rgba(255, 255, 255, 0.98);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10000; font-family: system-ui, sans-serif;
+        }
+        #pyodide-overlay .panel {
+            text-align: center; max-width: 420px; padding: 2rem;
+        }
+        #pyodide-overlay h2 { color: #0d6efd; margin-bottom: 0.5rem; font-weight: 600; }
+        #pyodide-overlay p { color: #666; font-size: 0.95rem; }
+        #pyodide-progress-track {
+            width: 100%; height: 6px; background: #e9ecef; border-radius: 3px;
+            margin-top: 1.5rem; overflow: hidden;
+        }
+        #pyodide-progress-bar {
+            height: 100%; width: 0%; background: #0d6efd; transition: width 0.3s;
+            border-radius: 3px;
+        }
+        #pyodide-progress-label {
+            margin-top: 0.6rem; font-size: 0.85rem; color: #555;
+        }
+        .wasm-badge {
+            font-size: 0.65rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 0.1rem 0.5rem; border-radius: 999px;
+            margin-left: 0.6rem; vertical-align: middle;
+            font-weight: 500; letter-spacing: 0.02em;
+        }
+    </style>
+</head>
+<body>
+    <!-- Pyodide loading overlay — hidden once the runtime is ready -->
+    <div id="pyodide-overlay">
+        <div class="panel">
+            <h2>📈 Scikit-Learner</h2>
+            <p>Loading scikit-learn into your browser via Pyodide.<br>
+               First visit takes ~10 s; subsequent loads are instant.</p>
+            <div id="pyodide-progress-track">
+                <div id="pyodide-progress-bar"></div>
+            </div>
+            <div id="pyodide-progress-label">Initializing…</div>
+        </div>
+    </div>
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary py-1">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="bi bi-graph-up"></i> Scikit-Learner
+                <span class="wasm-badge" title="Runs entirely in your browser — no backend">running in your browser · no backend</span>
+            </span>
+            <div class="navbar-nav flex-row">
+                <button class="btn btn-outline-light btn-sm me-2" onclick="showDataSection()">
+                    <i class="bi bi-database"></i> Data
+                </button>
+                <button class="btn btn-outline-light btn-sm me-2" onclick="showLearnSection()">
+                    <i class="bi bi-mortarboard"></i> Learn
+                </button>
+                <button class="btn btn-outline-light btn-sm" onclick="showCompareSection()">
+                    <i class="bi bi-bar-chart"></i> Compare
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Toolbar -->
+    <div class="toolbar bg-light border-bottom px-3 py-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <button class="btn btn-outline-secondary btn-sm" onclick="showNewDataModal()">
+                <i class="bi bi-plus-lg"></i> New
+            </button>
+            <div class="vr"></div>
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-primary btn-sm" onclick="trainSelectedModels()" id="trainBtn" disabled>
+                    <i class="bi bi-play-fill"></i> Train Selected
+                </button>
+                <button class="btn btn-outline-primary btn-sm" onclick="trainAllModels()" id="trainAllBtn" disabled>
+                    <i class="bi bi-lightning"></i> Train All
+                </button>
+            </div>
+            <div class="vr"></div>
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-secondary btn-sm" onclick="exportSelectedModel()" id="exportBtn" disabled>
+                    <i class="bi bi-download"></i> Export Model
+                </button>
+            </div>
+            <div class="ms-auto">
+                <span class="badge bg-secondary" id="dataStatus">No data loaded</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Left Panel: Models List -->
+        <div class="left-panel" id="leftPanel">
+            <!-- Available Models (on top, collapsible) -->
+            <div class="panel-header collapsible" onclick="toggleModelsPanel()">
+                <span><i class="bi bi-chevron-down" id="modelsChevron"></i> Available Models</span>
+                <span class="badge bg-secondary" id="modelCountBadge">27</span>
+            </div>
+            <div class="available-models" id="availableModels">
+                <!-- Will be populated dynamically -->
+            </div>
+
+            <!-- Trained Models (at bottom) -->
+            <div class="panel-header">
+                <span>Trained Models</span>
+                <div class="btn-group btn-group-sm" id="sortBtns" style="display: none;">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="sortModels('name')" title="Sort by name">
+                        <i class="bi bi-sort-alpha-down"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="sortModels('score')" title="Sort by score">
+                        <i class="bi bi-sort-numeric-down"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="model-list" id="modelList">
+                <div class="text-muted small p-3 text-center">
+                    Load data to start training
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Panel: Visualizations -->
+        <div class="center-panel">
+            <!-- Welcome View (shown when no data loaded) -->
+            <div id="welcomeView" class="welcome-view-minimal">
+                <div class="welcome-content">
+                    <div class="welcome-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <h4>Welcome to Scikit-Learner</h4>
+                    <p class="text-muted">Train and compare machine learning models visually</p>
+                    <button class="btn btn-primary" onclick="showNewDataModal()">
+                        <i class="bi bi-plus-lg"></i> Load Data to Begin
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visualization Area (hidden until data loaded) -->
+            <div id="visualizationArea" style="display: none;">
+            <ul class="nav nav-tabs" id="vizTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="scatter-tab" data-bs-toggle="tab" data-bs-target="#scatter" type="button">
+                        <i class="bi bi-scatter-chart"></i> Scatter Plot
+                    </button>
+                </li>
+                <!-- Regression Tabs -->
+                <li class="nav-item regression-tab" role="presentation">
+                    <button class="nav-link" id="residuals-tab" data-bs-toggle="tab" data-bs-target="#residuals" type="button">
+                        <i class="bi bi-graph-down"></i> Residuals
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="predicted-tab" data-bs-toggle="tab" data-bs-target="#predicted" type="button">
+                        <i class="bi bi-bullseye"></i> Predicted vs Actual
+                    </button>
+                </li>
+                <!-- Classification Tabs -->
+                <li class="nav-item classification-tab" role="presentation" style="display: none;">
+                    <button class="nav-link" id="confusion-tab" data-bs-toggle="tab" data-bs-target="#confusion" type="button">
+                        <i class="bi bi-grid-3x3"></i> Confusion Matrix
+                    </button>
+                </li>
+                <li class="nav-item classification-tab" role="presentation" style="display: none;">
+                    <button class="nav-link" id="roc-tab" data-bs-toggle="tab" data-bs-target="#roc" type="button">
+                        <i class="bi bi-bezier2"></i> ROC Curve
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="comparison-tab" data-bs-toggle="tab" data-bs-target="#comparison" type="button">
+                        <i class="bi bi-bar-chart-line"></i> Model Comparison
+                    </button>
+                </li>
+            </ul>
+            <div class="tab-content flex-grow-1" id="vizTabContent">
+                <div class="tab-pane fade show active h-100" id="scatter" role="tabpanel">
+                    <div id="scatterPlot" class="plot-container"></div>
+                </div>
+                <div class="tab-pane fade h-100" id="residuals" role="tabpanel">
+                    <div id="residualsPlot" class="plot-container"></div>
+                </div>
+                <div class="tab-pane fade h-100" id="predicted" role="tabpanel">
+                    <div id="predictedPlot" class="plot-container"></div>
+                </div>
+                <div class="tab-pane fade h-100" id="comparison" role="tabpanel">
+                    <div id="comparisonPlot" class="plot-container"></div>
+                </div>
+                <!-- Classification-specific tabs -->
+                <div class="tab-pane fade h-100" id="confusion" role="tabpanel">
+                    <div id="confusionPlot" class="plot-container"></div>
+                </div>
+                <div class="tab-pane fade h-100" id="roc" role="tabpanel">
+                    <div id="rocPlot" class="plot-container"></div>
+                </div>
+            </div>
+            <!-- Data Info Bar -->
+            <div class="info-bar bg-light border-top px-3 py-2">
+                <small class="text-muted">
+                    <span id="infoTaskType" class="badge bg-primary me-2">Regression</span>
+                    <span id="infoDataset">Data set: -</span> |
+                    <span id="infoObs">Observations: -</span> |
+                    <span id="infoFeatures">Features: -</span> |
+                    <span id="infoTarget">Target: -</span> |
+                    <span id="infoValidation">Validation: 5-fold cross-validation</span>
+                </small>
+            </div>
+            </div> <!-- End visualizationArea -->
+        </div>
+
+        <!-- Right Panel: Settings (hidden until data loaded) -->
+        <div class="right-panel" id="rightPanel" style="display: none;">
+            <div class="panel-section">
+                <div class="panel-header">Plot Settings</div>
+                <div class="p-2">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="plotType" id="plotData" value="data" checked>
+                        <label class="form-check-label small" for="plotData">Data Points</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="plotType" id="plotPredictions" value="predictions">
+                        <label class="form-check-label small" for="plotPredictions">Predictions</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showResiduals" onchange="updatePlots()">
+                        <label class="form-check-label small" for="showResiduals">Show Residuals</label>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-section">
+                <div class="panel-header">Predictors</div>
+                <div class="p-2">
+                    <label class="form-label small">X Axis</label>
+                    <select class="form-select form-select-sm mb-2" id="xAxisSelect" onchange="updatePlots()">
+                        <option value="">Select feature...</option>
+                    </select>
+                    <label class="form-label small">Y Axis</label>
+                    <select class="form-select form-select-sm" id="yAxisSelect" onchange="updatePlots()">
+                        <option value="">Select feature...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="panel-section">
+                <div class="panel-header">Target Variable</div>
+                <div class="p-2">
+                    <select class="form-select form-select-sm" id="targetSelect" onchange="onTargetChange()">
+                        <option value="">Select target...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="panel-section">
+                <div class="panel-header">Cross-Validation</div>
+                <div class="p-2">
+                    <label class="form-label small">Number of Folds</label>
+                    <select class="form-select form-select-sm" id="cvFolds">
+                        <option value="3">3-fold</option>
+                        <option value="5" selected>5-fold</option>
+                        <option value="10">10-fold</option>
+                    </select>
+                </div>
+            </div>
+            <div class="panel-section" id="modelMetrics" style="display: none;">
+                <div class="panel-header">Model Metrics</div>
+                <div class="p-2">
+                    <!-- Regression Metrics -->
+                    <table class="table table-sm small mb-0 regression-metrics">
+                        <tbody>
+                            <tr>
+                                <td>R<sup>2</sup> Score:</td>
+                                <td class="text-end" id="metricR2">-</td>
+                            </tr>
+                            <tr>
+                                <td>RMSE:</td>
+                                <td class="text-end" id="metricRMSE">-</td>
+                            </tr>
+                            <tr>
+                                <td>MAE:</td>
+                                <td class="text-end" id="metricMAE">-</td>
+                            </tr>
+                            <tr>
+                                <td>CV R<sup>2</sup>:</td>
+                                <td class="text-end" id="metricCVR2">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- Classification Metrics -->
+                    <table class="table table-sm small mb-0 classification-metrics" style="display: none;">
+                        <tbody>
+                            <tr>
+                                <td>Accuracy:</td>
+                                <td class="text-end" id="metricAccuracy">-</td>
+                            </tr>
+                            <tr>
+                                <td>F1 Score:</td>
+                                <td class="text-end" id="metricF1">-</td>
+                            </tr>
+                            <tr>
+                                <td>Precision:</td>
+                                <td class="text-end" id="metricPrecision">-</td>
+                            </tr>
+                            <tr>
+                                <td>Recall:</td>
+                                <td class="text-end" id="metricRecall">-</td>
+                            </tr>
+                            <tr>
+                                <td>CV Accuracy:</td>
+                                <td class="text-end" id="metricCVAccuracy">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Data Modal (unified) -->
+    <div class="modal fade" id="newDataModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title d-flex align-items-center gap-2">
+                        <i class="bi bi-database text-primary"></i> Sample Datasets
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <p class="text-muted small mb-3">Start with curated data to learn the workflow</p>
+
+                    <!-- Sample Datasets List -->
+                    <div class="sample-dataset-list" id="modalDatasetList">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Upload Section -->
+                    <div class="upload-section mt-3 pt-3 border-top">
+                        <button class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2" onclick="showUploadSection()">
+                            <i class="bi bi-upload"></i> Upload Your Own Data (CSV, Excel)
+                        </button>
+
+                        <!-- Hidden upload form -->
+                        <div id="uploadSection" class="mt-3" style="display: none;">
+                            <div class="alert alert-light border small mb-3">
+                                <strong><i class="bi bi-info-circle text-primary"></i> Expected Format:</strong>
+                                <ul class="mb-1 mt-2 ps-3">
+                                    <li>CSV file with column headers</li>
+                                    <li>Numeric columns for features</li>
+                                    <li>Target column (numeric or categorical)</li>
+                                </ul>
+                                <div class="mt-2">
+                                    <strong>Example:</strong>
+                                    <pre class="bg-white p-2 rounded mb-0 mt-1 border" style="font-size: 11px;">feature1,feature2,target
+1.5,2.3,10.0
+2.1,3.4,15.5</pre>
+                                </div>
+                            </div>
+                            <input type="file" class="form-control form-control-sm" id="fileInput" accept=".csv">
+                            <div id="uploadPreview" class="mt-2" style="display: none;">
+                                <small class="text-muted">Preview:</small>
+                                <div class="table-responsive" style="max-height: 150px;">
+                                    <table class="table table-sm table-striped mb-0" id="previewTable"></table>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-sm w-100 mt-2" onclick="uploadFile()">
+                                <i class="bi bi-check-lg"></i> Load Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Selection Modal -->
+    <div class="modal fade" id="featureModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Features</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select features to use for training:</label>
+                        <div id="featureCheckboxes" class="border rounded p-2" style="max-height: 300px; overflow-y: auto;">
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="selectAllFeatures()">Select All</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="deselectAllFeatures()">Deselect All</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmFeatureSelection()">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Models Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title d-flex align-items-center gap-2">
+                        <i class="bi bi-download text-primary"></i> Export Models
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <p class="text-muted small mb-3">Select models to download (joblib format)</p>
+
+                    <div id="exportModelList" class="export-model-list">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="selectAllExportModels()">Select All</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="deselectAllExportModels()">Deselect All</button>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="downloadSelectedModels()" id="downloadBtn">
+                        <i class="bi bi-download"></i> Download
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/pyodide-bridge.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
