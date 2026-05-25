@@ -2,9 +2,6 @@
  * Scikit-Learner - Frontend JavaScript
  */
 
-// API Base URL
-const API_BASE = '';
-
 // Application State
 const state = {
     data: null,

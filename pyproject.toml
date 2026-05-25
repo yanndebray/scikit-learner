@@ -1,3 +1,8 @@
+# This file is intentionally minimal and has no functional role in the
+# current deployment. Scikit-Learner is a static site that runs scikit-learn
+# in the browser via Pyodide — there is no Python backend to install or run.
+# Kept only as a historical marker from the project's earlier FastAPI version.
+
 [project]
 name = "scikit-learner"
 version = "0.1.0"

@@ -17,7 +17,6 @@ python3 -m http.server -d frontend 8080
 
 No build step, no dependency install, no backend process. Pyodide and its packages (`scikit-learn`, `pandas`, `numpy`, `scipy`, `joblib`) are fetched from the JSDelivr CDN at runtime — **the app requires internet access on first load** (~15 MB, ~10 s). Subsequent loads are cached.
 
-`pyproject.toml` and `.python-version` exist only because the project was historically a FastAPI backend — they have no role in the current deployment. `dependencies = []` is intentional.
 
 ## Architecture: the JS ↔ Python bridge
 
@@ -29,7 +28,7 @@ The whole app pivots around three files. Understanding the contract between them
   - `pyCallBinary(fnName, Uint8Array, extraArgs)` — passes a binary buffer via a `globals.set('__bridge_buf', ...)` shim (used by `upload_csv`).
   - `downloadBytes(bytes, filename, mime)` — triggers a browser download.
   - `window.pyodideReady()` and the `pyodide-ready` event signal when the runtime is up.
-- **`frontend/js/app.js`** — all UI logic. Builds DOM, wires Bootstrap controls, renders Plotly charts. Calls `pyCall('train', [...])` etc. instead of `fetch()`. Waits for `pyodide-ready` before its first call. The `API_BASE` constant is a vestigial leftover from the FastAPI version and is unused.
+- **`frontend/js/app.js`** — all UI logic. Builds DOM, wires Bootstrap controls, renders Plotly charts. Calls `pyCall('train', [...])` etc. instead of `fetch()`. Waits for `pyodide-ready` before its first call.
 
 ### Adding a new Python-side capability
 

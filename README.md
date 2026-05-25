@@ -37,20 +37,22 @@ A web-based machine learning application for training and comparing regression a
 First load: ~10 s (downloads Pyodide runtime + sklearn wheel, ~15 MB total).
 Subsequent loads: ~1 s thanks to browser cache.
 
-## Deploy
+## Running locally
 
-Any static host works. Example with Python's stdlib server:
+This is a 100% static site — no Python virtualenv, no Node toolchain, no backend to start. Any static file server will do; the snippet below uses Python's stdlib server only because it's universally available.
 
 ```bash
 python3 -m http.server -d frontend 8080
 open http://localhost:8080/
 ```
 
-## Local development
-
-No backend to start. Edit any file under `frontend/`, reload the browser.
+Edit any file under `frontend/` and reload the browser.
 
 If you change `frontend/py/learner.py`, the browser fetches it fresh on reload — but Pyodide doesn't pick up the change until the module is re-imported. Hard-reload (Cmd-Shift-R / Ctrl-F5) or open a new tab.
+
+## Deploy
+
+Upload `frontend/` to any static host (Netlify, GitHub Pages, S3, …).
 
 ## Testing
 
