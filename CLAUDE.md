@@ -8,6 +8,8 @@ Scikit-Learner is a **fully static, single-page web app** that runs scikit-learn
 
 The `landing/` directory is a separate marketing page; the app proper is `frontend/`.
 
+The repo also ships as a PyPI package (`pip install scikit-learner`). The `scikit_learner/` directory at the root is the Python distribution layer: a thin CLI (`scikit_learner.cli:main`) that serves the bundled frontend on localhost and opens the browser. The wheel `force-include`s `frontend/` as `scikit_learner/static/` so there's no duplicated source — see `pyproject.toml`.
+
 ## Running locally
 
 ```bash
@@ -47,7 +49,7 @@ Add to `AVAILABLE_MODELS` (regression) or `AVAILABLE_CLASSIFICATION_MODELS` (cla
 
 ## Conventions worth knowing
 
-- **Don't try to add real HTTP endpoints or a Python web server** — the entire point is static deployment. New features go through the `pyCall` bridge.
+- **Don't add real HTTP endpoints or Python-side business logic.** The ML work belongs in `learner.py` and runs in the browser via Pyodide; new features go through the `pyCall` bridge. The `scikit_learner` CLI is just a static-file launcher for `pip install` users — it does not handle requests, talk to sklearn, or hold session state.
 - **20 MB CSV upload cap** is dictated by Pyodide's WASM heap, not by code. Don't add code to "fix" this — document the limit.
 - **Boston Housing is synthesized**, not loaded from sklearn (removed in sklearn ≥1.2). The synthetic generator is in `load_sample()` under `dataset_key == "boston"`.
 - **Pyodide version** is pinned in `pyodide-bridge.js` (`PYODIDE_VERSION`). Bumping it may shift which scikit-learn version is bundled — verify the model dict still works.

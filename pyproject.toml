@@ -1,12 +1,55 @@
-# This file is intentionally minimal and has no functional role in the
-# current deployment. Scikit-Learner is a static site that runs scikit-learn
-# in the browser via Pyodide — there is no Python backend to install or run.
-# Kept only as a historical marker from the project's earlier FastAPI version.
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "scikit-learner"
-version = "0.1.0"
+version = "0.1.1"
 description = "Train ML models without leaving your browser 📈"
 readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
+authors = [
+    { name = "Yann Debray", email = "yann.debray@probabl.ai" },
+]
+keywords = ["scikit-learn", "machine-learning", "pyodide", "wasm", "education"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Web Environment",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = []
+
+[project.urls]
+Homepage = "https://scikit-learner.app"
+Repository = "https://github.com/yanndebray/scikit-learner"
+Issues = "https://github.com/yanndebray/scikit-learner/issues"
+
+[project.scripts]
+scikit-learner = "scikit_learner.cli:main"
+
+# The wheel contains the `scikit_learner` Python package plus the static
+# `frontend/` directory remapped to `scikit_learner/static/` so the CLI can
+# locate it via importlib.resources after `pip install`.
+[tool.hatch.build.targets.wheel]
+packages = ["scikit_learner"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"frontend" = "scikit_learner/static"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "scikit_learner/",
+    "frontend/",
+    "README.md",
+    "LICENSE",
+]
