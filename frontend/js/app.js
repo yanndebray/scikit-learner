@@ -444,7 +444,7 @@ async function uploadFile() {
     try {
         const file = fileInput.files[0];
         if (file.size > 20 * 1024 * 1024) {
-            throw new Error('File exceeds 20 MB cap — Pyodide runs out of memory on large CSVs.');
+            throw new Error('File is too large for the browser runtime — please subsample first (max 20 MB).');
         }
         const buf = new Uint8Array(await file.arrayBuffer());
         const data = await pyCallBinary('upload_csv', buf, [file.name]);
