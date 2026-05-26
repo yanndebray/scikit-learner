@@ -66,6 +66,41 @@ function setupEventListeners() {
             setTimeout(updatePlots, 100);
         });
     });
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', handleGlobalShortcut, true);    
+}
+
+// Handle keyboard shortcuts globally
+function handleGlobalShortcut(event) {
+    const activeTag = document.activeElement?.tagName;
+    if(activeTag === 'INPUT' || activeTag === 'TEXTAREA'){
+        return;
+    }
+
+    const isMod = event.altKey || event.metaKey;
+    const key = event.key.toLowerCase();
+    if (isMod && key === 't'){
+        
+        event.preventDefault();
+        trainSelectedModels();
+    
+    }else if (isMod && key === 'e'){
+        event.preventDefault();
+        exportSelectedModel();
+    }else if (isMod && key === 'u'){
+        event.preventDefault();
+        openFileUpload();
+    }else if (event.key === '?'){
+        event.preventDefault();
+        showShortcutHelp();
+    }
+
+}
+
+function showShortcutHelp() {
+    const modal = new bootstrap.Modal(document.getElementById('shortcutHelpModal'));
+    modal.show();
 }
 
 // Render datasets on home view
