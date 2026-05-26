@@ -467,21 +467,6 @@ def train(
         "n_features": len(features),
     }
 
-
-def train_all(features: list, target: str, cv_folds: int = 5, task_type: str = "regression") -> dict:
-    """Train every model in the active dictionary, reporting per-model success."""
-    if hasattr(features, "to_py"):
-        features = list(features.to_py())
-    src = AVAILABLE_CLASSIFICATION_MODELS if task_type == "classification" else AVAILABLE_MODELS
-    results = []
-    for key in src:
-        try:
-            results.append(train(key, features, target, cv_folds, task_type))
-        except Exception as e:
-            results.append({"success": False, "model_type": key, "error": str(e)})
-    return {"results": results}
-
-
 def get_model(model_id: str) -> dict:
     if model_id not in current_data["models"]:
         raise ValueError("Model not found")

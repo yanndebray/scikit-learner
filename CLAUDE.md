@@ -24,7 +24,7 @@ No build step, no dependency install, no backend process. Pyodide and its packag
 
 The whole app pivots around three files. Understanding the contract between them is the key to being productive here.
 
-- **`frontend/py/learner.py`** — pure Python module. Every former HTTP endpoint is a top-level function (`upload_csv`, `load_sample`, `train`, `train_all`, `predictions`, `scatter_data`, `export_model`, `bulk_zip`, `comparison`, etc.) that takes JSON-serializable args and returns a `dict` (or raw `bytes` for downloads). Module-level `current_data` dict holds session state — dataframe, trained models, task type. Each browser tab is its own Pyodide instance, so global state is fine.
+- **`frontend/py/learner.py`** — pure Python module. Every former HTTP endpoint is a top-level function (`upload_csv`, `load_sample`, `train`, `predictions`, `scatter_data`, `export_model`, `bulk_zip`, `comparison`, etc.) that takes JSON-serializable args and returns a `dict` (or raw `bytes` for downloads). Module-level `current_data` dict holds session state — dataframe, trained models, task type. Each browser tab is its own Pyodide instance, so global state is fine.
 - **`frontend/js/pyodide-bridge.js`** — boots Pyodide, loads packages, copies `data/airfoil.csv` into the Pyodide MEMFS at `/data/airfoil.csv`, executes `learner.py`, then exposes a tiny surface on `window`:
   - `pyCall(fnName, [primitiveArgs])` — for JSON-able calls. Builds a Python expression string and runs it via `runPython`. Result is converted with `toJs({dict_converter: Object.fromEntries})`.
   - `pyCallBinary(fnName, Uint8Array, extraArgs)` — passes a binary buffer via a `globals.set('__bridge_buf', ...)` shim (used by `upload_csv`).
