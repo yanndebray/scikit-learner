@@ -347,7 +347,6 @@ function updateTrainButtons() {
     const hasSelectedModels = state.selectedModelsToTrain.size > 0;
 
     document.getElementById('trainBtn').disabled = !(hasData && hasTarget && hasFeatures && hasSelectedModels);
-    document.getElementById('trainAllBtn').disabled = !(hasData && hasTarget && hasFeatures);
 }
 
 // Show new data modal (unified)
@@ -720,15 +719,6 @@ async function trainSelectedModels() {
 
     const modelsToTrain = Array.from(state.selectedModelsToTrain);
     await trainModels(modelsToTrain);
-}
-
-// Train all available models
-async function trainAllModels() {
-    const allModels = [];
-    for (const models of Object.values(state.availableModels)) {
-        models.forEach(m => allModels.push(m.key));
-    }
-    await trainModels(allModels);
 }
 
 // Train models
