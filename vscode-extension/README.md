@@ -11,7 +11,8 @@ Everything runs in a **local Python environment** — real CPython, your machine
   - **Models** — the catalog as a checkbox tree grouped by category; ▶ in the header trains the checked set, *Train all* in the overflow menu.
   - **Runs** — ranked results with scores; running / queued / failed states live here during training. Click a run to inspect it.
   - **Artifacts** — generated `pipeline.py` and `metrics.json` (read-only virtual documents), plus a `.joblib` export per trained run.
-- **Editor tab** — Probabl-branded plots (hand-rolled SVG, no CDNs): Scatter, Predicted vs actual, Residuals or Confusion matrix + ROC, Comparison table, with a Save PNG action and a run-inspector column (metrics, plot controls, hyperparameters, export).
+- **Editor tab** — plots (hand-rolled SVG, no CDNs) that follow your VS Code color theme, including `charts.*` colors: Scatter, Predicted vs actual, Residuals or Confusion matrix + ROC, Comparison table, with a Save PNG action and a run-inspector column (metrics, plot controls, hyperparameters, export).
+- **Probabl Dark** — a complete bundled color theme (midnight indigo + orange spark, sky accents) covering workbench, syntax, terminal and chart colors. `Preferences: Color Theme → Probabl Dark` restores the full brand look from the design mock.
 - **Status bar** — Python env + training progress (`Training 2 of 4`) or `n runs · best 0.967`.
 - **Output → Scikit-Learner** — one log line per trained model.
 
@@ -21,7 +22,7 @@ On first use the extension finds a Python with scikit-learn (setting → its man
 
 The ML layer is the same `learner.py` the [web app](https://scikit-learner.app) runs in Pyodide — copied from `../frontend` at build time, never forked. `python/learner_server.py` serves its functions over line-delimited JSON on stdin/stdout; one long-lived process per session holds the dataframe and fitted models, exactly like the web app's per-tab Pyodide instance.
 
-Since 0.2.0 the UI is native: an extension-host `Session` model (`src/session.ts`) is the single source of truth, and the tree views, status bar, plots webview and generated documents are all pure renderers of it. The plots webview is self-contained — no Plotly, no Bootstrap, no network.
+Since 0.2.0 the UI is native: an extension-host `Session` model (`src/session.ts`) is the single source of truth, and the tree views, status bar, plots webview and generated documents are all pure renderers of it. The plots webview is self-contained — no Plotly, no Bootstrap, no network. Since 0.2.1 it draws every color from the active theme's `--vscode-*` variables (and re-renders live on theme switch); the brand appearance ships as the separate "Probabl Dark" color theme.
 
 ## Development
 

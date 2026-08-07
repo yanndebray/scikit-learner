@@ -2,31 +2,57 @@
  * plots.js — the Scikit-Learner plots editor (design 1a–1c).
  *
  * A pure renderer: the extension host pushes the session snapshot, this file
- * draws it. Charts are hand-rolled SVG in the Probabl palette — no Plotly,
- * no external anything. Local UI state (active tab, inspector, plot
- * controls) lives here; everything that mutates the session goes back to
- * the host as a command message.
+ * draws it. Charts are hand-rolled SVG colored from the active VS Code
+ * theme's --vscode-* variables (charts.*, chrome tokens) — no Plotly, no
+ * external anything. The bundled "Probabl Dark" theme supplies the brand
+ * look. Local UI state (active tab, inspector, plot controls) lives here;
+ * everything that mutates the session goes back to the host as a command
+ * message.
  */
 
 (() => {
   const vscode = acquireVsCodeApi();
 
-  const C = {
-    midnight: "#040524",
-    grid: "#1B1D58",
-    axis: "#34366D",
-    sky: "#4CD0FF",
-    skySoft: "#8EE1FF",
-    orange: "#FF7900",
-    mint: "#78F0C8",
-    red: "#FF6B6B",
-    white: "#F4F2EC",
-    mist: "#CCCCD7",
-    slate: "#8C8EA8",
-  };
-  const SERIES = [C.sky, C.orange, C.mint, C.skySoft, C.white, C.slate];
-  const MONO = "IBM Plex Mono, ui-monospace, Menlo, monospace";
-  const SANS = "Switzer, Inter, system-ui, sans-serif";
+  /* Colors come from the active VS Code theme (charts.* + chrome tokens),
+     read at render time so a theme switch restyles every chart live. The
+     bundled "Probabl Dark" theme supplies the brand palette. */
+  let P = {};
+  let SERIES = [];
+  let MONO = "ui-monospace, Menlo, monospace";
+  let SANS = "system-ui, sans-serif";
+
+  function refreshPalette() {
+    const cs = getComputedStyle(document.body);
+    const v = (name, fallback) => {
+      const value = cs.getPropertyValue(name).trim();
+      return value || fallback;
+    };
+    P = {
+      bg: v("--vscode-editor-background", "#1e1e1e"),
+      fg: v("--vscode-editor-foreground", "#cccccc"),
+      muted: v("--vscode-descriptionForeground", "#8c8ea8"),
+      grid: v("--vscode-charts-lines", v("--vscode-panel-border", "#44445588")),
+      axis: v("--vscode-panel-border", "#444455"),
+      blue: v("--vscode-charts-blue", "#4CD0FF"),
+      orange: v("--vscode-charts-orange", "#FF7900"),
+      green: v("--vscode-charts-green", "#78F0C8"),
+      red: v("--vscode-charts-red", "#FF6B6B"),
+      yellow: v("--vscode-charts-yellow", "#E59A2F"),
+      purple: v("--vscode-charts-purple", "#B18EFF"),
+    };
+    SERIES = [P.blue, P.orange, P.green, P.purple, P.yellow, P.red];
+    MONO = v("--vscode-editor-font-family", "ui-monospace, Menlo, monospace").replaceAll('"', "'");
+    SANS = v("--vscode-font-family", "system-ui, sans-serif").replaceAll('"', "'");
+  }
+
+  /* VS Code swaps the --vscode-* variables in place on theme change; watch
+     the root element and re-render so the charts follow immediately. */
+  new MutationObserver(() => {
+    if (state) render();
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class"] });
+  new MutationObserver(() => {
+    if (state) render();
+  }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
 
   let state = null;
   const ui = {
@@ -66,14 +92,26 @@
     const x = Math.sin(i * 127.1 + salt * 311.7) * 43758.5453;
     return (x - Math.floor(x)) * 2 - 1;
   }
+  /* Theme colors arrive as #rgb, #rrggbb or rgb()/rgba() — parse them all. */
+  function parseColor(c) {
+    c = c.trim();
+    if (c.startsWith("#")) {
+      if (c.length >= 7) return [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+      return [1, 2, 3].map((i) => parseInt(c[i] + c[i], 16));
+    }
+    const m = c.match(/rgba?\(([^)]+)\)/);
+    if (m) return m[1].split(",").slice(0, 3).map((s) => Math.round(parseFloat(s)));
+    return [128, 128, 128];
+  }
   function lerpColor(a, b, t) {
-    const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
-    const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+    const pa = parseColor(a);
+    const pb = parseColor(b);
     const q = Math.max(0, Math.min(1, t));
     return `rgb(${pa.map((v, i) => Math.round(v + (pb[i] - v) * q)).join(",")})`;
   }
+  /* Continuous colour ramp: theme blue → theme orange. */
   function heat(t) {
-    return t < 0.5 ? lerpColor("#4CD0FF", "#F4F2EC", t * 2) : lerpColor("#F4F2EC", "#FF7900", t * 2 - 1);
+    return lerpColor(P.blue, P.orange, t);
   }
   function niceTicks(min, max, count = 5) {
     if (!isFinite(min) || !isFinite(max)) return [0, 1];
@@ -104,18 +142,18 @@
   const W = 820, H = 470, ML = 70, MR = 20, MT = 30, MB = 40;
 
   function frame(xTicks, yTicks, xScale, yScale, xLabel, yLabel) {
-    let g = `<g stroke="${C.grid}" stroke-width="1">`;
+    let g = `<g stroke="${P.grid}" stroke-width="1">`;
     for (const t of yTicks) g += `<line x1="${ML}" y1="${yScale(t)}" x2="${W - MR}" y2="${yScale(t)}"></line>`;
     g += `</g>`;
-    let axes = `<g stroke="${C.axis}" stroke-width="1">` +
+    let axes = `<g stroke="${P.axis}" stroke-width="1">` +
       `<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${H - MB}"></line>` +
       `<line x1="${ML}" y1="${H - MB}" x2="${W - MR}" y2="${H - MB}"></line></g>`;
-    let labels = `<g fill="${C.slate}" font-family="${MONO}" font-size="11">`;
+    let labels = `<g fill="${P.muted}" font-family="${MONO}" font-size="11">`;
     for (const t of yTicks) labels += `<text x="${ML - 12}" y="${yScale(t) + 4}" text-anchor="end">${tickLabel(t)}</text>`;
     for (const t of xTicks) labels += `<text x="${xScale(t)}" y="${H - MB + 22}" text-anchor="middle">${tickLabel(t)}</text>`;
     labels += `</g>`;
-    const xl = `<text x="${(ML + W - MR) / 2}" y="${H - 4}" text-anchor="middle" fill="${C.slate}" font-family="${SANS}" font-size="12">${esc(xLabel)}</text>`;
-    const yl = `<text x="20" y="${(MT + H - MB) / 2}" text-anchor="middle" fill="${C.slate}" font-family="${SANS}" font-size="12" transform="rotate(-90 20 ${(MT + H - MB) / 2})">${esc(yLabel)}</text>`;
+    const xl = `<text x="${(ML + W - MR) / 2}" y="${H - 4}" text-anchor="middle" fill="${P.muted}" font-family="${SANS}" font-size="12">${esc(xLabel)}</text>`;
+    const yl = `<text x="20" y="${(MT + H - MB) / 2}" text-anchor="middle" fill="${P.muted}" font-family="${SANS}" font-size="12" transform="rotate(-90 20 ${(MT + H - MB) / 2})">${esc(yLabel)}</text>`;
     return g + axes + labels + xl + yl;
   }
 
@@ -133,7 +171,7 @@
 
   function svgWrap(inner) {
     return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">` +
-      `<rect x="0" y="0" width="${W}" height="${H}" fill="${C.midnight}"></rect>${inner}</svg>`;
+      `<rect x="0" y="0" width="${W}" height="${H}" fill="${P.bg}"></rect>${inner}</svg>`;
   }
 
   /* Class labels can be strings; charts need numbers. */
@@ -184,13 +222,13 @@
     const j = ui.jitter ? (xTicks[1] - xTicks[0]) * 0.08 : 0;
     let dots = "";
     for (let i = 0; i < actual.length; i++) {
-      dots += `<circle cx="${xScale(actual[i] + j * noise(i, 1)).toFixed(1)}" cy="${yScale(pred[i] + j * noise(i, 2)).toFixed(1)}" r="3.4" fill="${C.sky}" fill-opacity="0.72"></circle>`;
+      dots += `<circle cx="${xScale(actual[i] + j * noise(i, 1)).toFixed(1)}" cy="${yScale(pred[i] + j * noise(i, 2)).toFixed(1)}" r="3.4" fill="${P.blue}" fill-opacity="0.72"></circle>`;
     }
     let ref = "";
     if (ui.ref45) {
       const lo = Math.max(xTicks[0], yTicks[0]);
       const hi = Math.min(xTicks[xTicks.length - 1], yTicks[yTicks.length - 1]);
-      ref = `<line x1="${xScale(lo)}" y1="${yScale(lo)}" x2="${xScale(hi)}" y2="${yScale(hi)}" stroke="${C.orange}" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.8"></line>`;
+      ref = `<line x1="${xScale(lo)}" y1="${yScale(lo)}" x2="${xScale(hi)}" y2="${yScale(hi)}" stroke="${P.orange}" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.8"></line>`;
     }
     const tgt = state.dataset.target ?? "target";
     return {
@@ -209,9 +247,9 @@
     const rmax = Math.max(...res.map((r) => Math.abs(r))) || 1;
     let dots = "";
     for (let i = 0; i < pred.length; i++) {
-      dots += `<circle cx="${xScale(pred[i]).toFixed(1)}" cy="${yScale(res[i]).toFixed(1)}" r="3.4" fill="${lerpColor("#78F0C8", "#FF7900", Math.abs(res[i]) / rmax)}" fill-opacity="0.72"></circle>`;
+      dots += `<circle cx="${xScale(pred[i]).toFixed(1)}" cy="${yScale(res[i]).toFixed(1)}" r="3.4" fill="${lerpColor(P.green, P.orange, Math.abs(res[i]) / rmax)}" fill-opacity="0.72"></circle>`;
     }
-    const zero = `<line x1="${ML}" y1="${yScale(0)}" x2="${W - MR}" y2="${yScale(0)}" stroke="${C.orange}" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.8"></line>`;
+    const zero = `<line x1="${ML}" y1="${yScale(0)}" x2="${W - MR}" y2="${yScale(0)}" stroke="${P.orange}" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.8"></line>`;
     return {
       svg: svgWrap(frame(xTicks, yTicks, xScale, yScale, "Predicted", "Residual") + zero + dots),
       title: `Residuals — ${sel.name}`,
@@ -235,18 +273,18 @@
       for (let c = 0; c < n; c++) {
         const v = cm[r][c];
         const t = v / max;
-        cells += `<rect x="${ox + c * cell}" y="${oy + r * cell}" width="${cell - 2}" height="${cell - 2}" rx="2" fill="${lerpColor("#0E1049", "#4CD0FF", t)}"></rect>`;
-        cells += `<text x="${ox + c * cell + (cell - 2) / 2}" y="${oy + r * cell + (cell - 2) / 2 + 5}" text-anchor="middle" fill="${t > 0.55 ? C.midnight : C.mist}" font-family="${MONO}" font-size="${n > 6 ? 10 : 14}">${v}</text>`;
+        cells += `<rect x="${ox + c * cell}" y="${oy + r * cell}" width="${cell - 2}" height="${cell - 2}" rx="2" fill="${lerpColor(P.bg, P.blue, t)}"></rect>`;
+        cells += `<text x="${ox + c * cell + (cell - 2) / 2}" y="${oy + r * cell + (cell - 2) / 2 + 5}" text-anchor="middle" fill="${t > 0.55 ? P.bg : P.fg}" font-family="${MONO}" font-size="${n > 6 ? 10 : 14}">${v}</text>`;
       }
     }
-    let axisLabels = `<g fill="${C.slate}" font-family="${MONO}" font-size="${n > 6 ? 9 : 11}">`;
+    let axisLabels = `<g fill="${P.muted}" font-family="${MONO}" font-size="${n > 6 ? 9 : 11}">`;
     for (let i = 0; i < n; i++) {
       axisLabels += `<text x="${ox + i * cell + cell / 2}" y="${oy + size + 16}" text-anchor="middle">${esc(labels[i])}</text>`;
       axisLabels += `<text x="${ox - 10}" y="${oy + i * cell + cell / 2 + 4}" text-anchor="end">${esc(labels[i])}</text>`;
     }
     axisLabels += `</g>`;
-    const cap = `<text x="${ox + size / 2}" y="${H - 4}" text-anchor="middle" fill="${C.slate}" font-family="${SANS}" font-size="12">Predicted</text>` +
-      `<text x="${ox - 46}" y="${oy + size / 2}" text-anchor="middle" fill="${C.slate}" font-family="${SANS}" font-size="12" transform="rotate(-90 ${ox - 46} ${oy + size / 2})">Actual</text>`;
+    const cap = `<text x="${ox + size / 2}" y="${H - 4}" text-anchor="middle" fill="${P.muted}" font-family="${SANS}" font-size="12">Predicted</text>` +
+      `<text x="${ox - 46}" y="${oy + size / 2}" text-anchor="middle" fill="${P.muted}" font-family="${SANS}" font-size="12" transform="rotate(-90 ${ox - 46} ${oy + size / 2})">Actual</text>`;
     return {
       svg: svgWrap(cells + axisLabels + cap),
       title: `Confusion matrix — ${sel.name}`,
@@ -270,7 +308,7 @@
       const label = multi ? `class ${sel.details.classLabels ? esc(String(sel.details.classLabels[i])) : i}` : "ROC";
       legend += `<text x="${W - MR - 10}" y="${H - MB - 14 - (curves.length - 1 - i) * 16}" text-anchor="end" fill="${color}" font-family="${MONO}" font-size="11">${label} · AUC ${fmt(c.auc)}</text>`;
     });
-    const diag = `<line x1="${xScale(0)}" y1="${yScale(0)}" x2="${xScale(1)}" y2="${yScale(1)}" stroke="${C.slate}" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"></line>`;
+    const diag = `<line x1="${xScale(0)}" y1="${yScale(0)}" x2="${xScale(1)}" y2="${yScale(1)}" stroke="${P.muted}" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"></line>`;
     return {
       svg: svgWrap(frame(xTicks, yTicks, xScale, yScale, "False positive rate", "True positive rate") + diag + paths + legend),
       title: `ROC — ${sel.name}`,
@@ -324,6 +362,7 @@
 
   function render() {
     if (!state) return;
+    refreshPalette();
     renderBanner();
     if (!state.dataset) {
       renderEmpty();
@@ -477,7 +516,7 @@
       canvas.width = W * scale;
       canvas.height = H * scale;
       const ctx = canvas.getContext("2d");
-      ctx.fillStyle = C.midnight;
+      ctx.fillStyle = P.bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       vscode.postMessage({

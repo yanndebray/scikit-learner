@@ -12,8 +12,9 @@ import { log } from "./util/log";
 /*  host pushes the full session snapshot on every change, and the     */
 /*  webview posts back user intents as commands.                       */
 /*                                                                     */
-/*  It is Probabl-branded (midnight canvas, sky/orange accents)        */
-/*  inside native VS Code chrome — self-contained, no CDNs.            */
+/*  It follows the active VS Code theme (all colors from --vscode-*    */
+/*  variables) and is self-contained — no CDNs. The bundled "Probabl   */
+/*  Dark" color theme supplies the brand look for the whole editor.    */
 /* ------------------------------------------------------------------ */
 
 const VIEW_TYPE = "scikit-learner.plots";

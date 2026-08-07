@@ -2,7 +2,7 @@
   "name": "scikit-learner",
   "displayName": "Scikit-Learner — train and compare ML models visually",
   "description": "Native VS Code ML workbench on scikit-learn. Pick a CSV or sample dataset in the sidebar, train 20+ models, compare runs, read the generated sklearn pipeline, export the best model. Runs against a local Python environment.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "probabl",
   "license": "MIT",
   "private": true,
@@ -30,6 +30,13 @@
   "main": "./dist/extension.js",
   "activationEvents": [],
   "contributes": {
+    "themes": [
+      {
+        "label": "Probabl Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/probabl-dark-color-theme.json"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
