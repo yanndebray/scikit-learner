@@ -1,0 +1,251 @@
+{
+  "name": "scikit-learner",
+  "displayName": "Scikit-Learner — train and compare ML models visually",
+  "description": "Native VS Code ML workbench on scikit-learn. Pick a CSV or sample dataset in the sidebar, train 20+ models, compare runs, read the generated sklearn pipeline, export the best model. Runs against a local Python environment.",
+  "version": "0.2.2",
+  "publisher": "probabl",
+  "license": "MIT",
+  "private": true,
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yanndebray/scikit-learner.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Data Science",
+    "Machine Learning",
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "scikit-learn",
+    "machine learning",
+    "regression",
+    "classification",
+    "csv"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "themes": [
+      {
+        "label": "Probabl Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/probabl-dark-color-theme.json"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "scikit-learner",
+          "title": "Scikit-Learner",
+          "icon": "media/flask.svg"
+        }
+      ]
+    },
+    "views": {
+      "scikit-learner": [
+        {
+          "id": "scikit-learner.dataset",
+          "name": "Dataset"
+        },
+        {
+          "id": "scikit-learner.models",
+          "name": "Models"
+        },
+        {
+          "id": "scikit-learner.runs",
+          "name": "Runs"
+        },
+        {
+          "id": "scikit-learner.artifacts",
+          "name": "Artifacts"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "scikit-learner.open",
+        "title": "Open plots",
+        "category": "Scikit-Learner",
+        "icon": "$(graph-scatter)"
+      },
+      {
+        "command": "scikit-learner.chooseDataset",
+        "title": "Choose dataset…",
+        "category": "Scikit-Learner",
+        "icon": "$(add)"
+      },
+      {
+        "command": "scikit-learner.loadSample",
+        "title": "Load a sample dataset…",
+        "category": "Scikit-Learner",
+        "icon": "$(database)"
+      },
+      {
+        "command": "scikit-learner.setTarget",
+        "title": "Set target column…",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.selectFeatures",
+        "title": "Select feature columns…",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.setTask",
+        "title": "Set task type…",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.setValidation",
+        "title": "Set cross-validation folds…",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.trainSelected",
+        "title": "Train selected models",
+        "category": "Scikit-Learner",
+        "icon": "$(play)"
+      },
+      {
+        "command": "scikit-learner.trainAll",
+        "title": "Train all models",
+        "category": "Scikit-Learner",
+        "icon": "$(run-all)"
+      },
+      {
+        "command": "scikit-learner.exportRun",
+        "title": "Export model (joblib)",
+        "category": "Scikit-Learner",
+        "icon": "$(desktop-download)"
+      },
+      {
+        "command": "scikit-learner.openPipeline",
+        "title": "Open generated pipeline.py",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.openMetrics",
+        "title": "Open metrics.json",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.setupEnvironment",
+        "title": "Set up local Python environment",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.removeEnvironment",
+        "title": "Remove managed environment",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.selectInterpreter",
+        "title": "Select Python interpreter…",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.restartPython",
+        "title": "Restart Python runtime",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.showLog",
+        "title": "Show log",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.loadCsv",
+        "title": "Load CSV",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.selectRun",
+        "title": "Select run",
+        "category": "Scikit-Learner"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "scikit-learner.chooseDataset",
+          "when": "view == scikit-learner.dataset",
+          "group": "navigation@1"
+        },
+        {
+          "command": "scikit-learner.loadSample",
+          "when": "view == scikit-learner.dataset",
+          "group": "navigation@2"
+        },
+        {
+          "command": "scikit-learner.trainSelected",
+          "when": "view == scikit-learner.models",
+          "group": "navigation@1"
+        },
+        {
+          "command": "scikit-learner.trainAll",
+          "when": "view == scikit-learner.models"
+        },
+        {
+          "command": "scikit-learner.open",
+          "when": "view == scikit-learner.runs",
+          "group": "navigation@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "scikit-learner.exportRun",
+          "when": "view == scikit-learner.runs && viewItem == run-done",
+          "group": "inline"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "scikit-learner.loadCsv",
+          "when": "false"
+        },
+        {
+          "command": "scikit-learner.selectRun",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Scikit-Learner",
+      "properties": {
+        "scikit-learner.python.interpreterPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to a Python interpreter with scikit-learn and pandas installed. Overrides discovery. Leave empty to let the extension find one."
+        },
+        "scikit-learner.python.useUv": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Use [uv](https://github.com/astral-sh/uv) to create the managed environment and install packages when it is on PATH. Falls back to `venv` + `pip` when uv is missing."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "sync": "node scripts/sync-assets.mjs",
+    "build": "npm run sync && node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:server && npm run test:integration",
+    "test:server": "npm run sync && node test/server.test.mjs",
+    "test:integration": "npm run build && node test/runTests.mjs",
+    "package": "npm run build && npx --yes @vscode/vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^3.1.0",
+    "esbuild": "^0.24.0",
+    "mocha": "^11.8.0",
+    "typescript": "^5.7.0"
+  }
+}

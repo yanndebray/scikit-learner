@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.vscode-test/
+*.vsix
+# Copies made by scripts/sync-assets.mjs — the source of truth is ../frontend
+python/learner.py
+python/data/

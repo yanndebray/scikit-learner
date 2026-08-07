@@ -1,0 +1,281 @@
+/* The plots editor follows the active VS Code theme: every color comes from
+   a --vscode-* variable the host injects, so light, dark and high-contrast
+   themes all render natively. Brand appearance comes from the bundled
+   "Probabl Dark" color theme instead of hardcoded hues (v0.2.1). */
+
+:root {
+  --bg: var(--vscode-editor-background);
+  --bg-side: var(--vscode-sideBar-background, var(--vscode-editor-background));
+  --fg: var(--vscode-editor-foreground, var(--vscode-foreground));
+  --muted: var(--vscode-descriptionForeground);
+  --line: var(--vscode-panel-border, rgba(128, 128, 128, 0.25));
+  --line-strong: var(--vscode-widget-border, var(--vscode-panel-border, rgba(128, 128, 128, 0.4)));
+  --accent: var(--vscode-focusBorder);
+  --tab-active: var(--vscode-panelTitle-activeBorder, var(--vscode-focusBorder));
+  --link: var(--vscode-textLink-foreground);
+  --chart-blue: var(--vscode-charts-blue);
+  --chart-orange: var(--vscode-charts-orange);
+  --chart-green: var(--vscode-charts-green);
+  --chart-red: var(--vscode-charts-red);
+  --sans: var(--vscode-font-family, system-ui, sans-serif);
+  --mono: var(--vscode-editor-font-family, ui-monospace, Menlo, monospace);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app { height: 100%; display: flex; flex-direction: column; }
+
+.banner {
+  padding: 6px 16px;
+  font-size: 12px;
+  background: var(--vscode-editorWidget-background, var(--bg-side));
+  border-bottom: 1px solid var(--line-strong);
+  color: var(--muted);
+}
+.banner.error { color: var(--vscode-errorForeground); }
+
+/* ---- empty state (design 1c) --------------------------------------- */
+
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.empty .inner {
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: center;
+  align-items: center;
+}
+.empty h1 {
+  margin: 0;
+  font-weight: 300;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+.empty p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.empty .buttons { display: flex; gap: 10px; margin-top: 6px; }
+
+.btn {
+  height: 32px;
+  padding: 0 18px;
+  border-radius: 2px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--sans);
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn.primary {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  font-weight: 500;
+}
+.btn.primary:hover { background: var(--vscode-button-hoverBackground, var(--vscode-button-background)); }
+.btn.outline {
+  background: var(--vscode-button-secondaryBackground, transparent);
+  border: 1px solid var(--line-strong);
+  color: var(--vscode-button-secondaryForeground, var(--fg));
+}
+.btn.outline:hover { background: var(--vscode-button-secondaryHoverBackground, transparent); }
+
+/* ---- main layout (design 1a) ---------------------------------------- */
+
+.center { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; }
+
+.tabs {
+  height: 38px;
+  display: flex;
+  align-items: stretch;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tabs .tab {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: var(--sans);
+  white-space: nowrap;
+  flex: none;
+}
+.tabs .tab:hover { color: var(--fg); }
+.tabs .tab.active { color: var(--fg); box-shadow: inset 0 -2px 0 var(--tab-active); }
+.tabs .spacer { flex: 1; }
+.tabs .action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: var(--sans);
+  white-space: nowrap;
+  flex: none;
+}
+.tabs .action:hover, .tabs .action.active { color: var(--fg); }
+
+.plot-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 28px 20px 28px;
+  min-width: 0;
+  min-height: 0;
+}
+.plot-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  gap: 16px;
+}
+.plot-head .title {
+  font-weight: 300;
+  font-size: 21px;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.plot-head .meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.plot-canvas { flex: 1; min-height: 0; }
+.plot-canvas svg { width: 100%; height: 100%; display: block; }
+
+.plot-hint {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ---- comparison table (design 1b) ------------------------------------ */
+
+.compare { padding: 0; width: 100%; border-collapse: collapse; font-size: 13px; }
+.compare th {
+  text-align: right;
+  padding: 8px 0 8px 24px;
+  border-bottom: 1px solid var(--line-strong);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  font-weight: 400;
+  color: var(--muted);
+}
+.compare th:first-child { text-align: left; padding-left: 0; }
+.compare td {
+  text-align: right;
+  padding: 11px 0 11px 24px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  color: var(--fg);
+  white-space: nowrap;
+}
+.compare td:first-child { text-align: left; padding-left: 0; font-family: var(--sans); }
+.compare tr { cursor: pointer; }
+.compare tr:hover td { background: var(--vscode-list-hoverBackground, transparent); }
+.compare tr.selected td:first-child { color: var(--link); }
+.compare .best { font-weight: 600; }
+.compare .status-done { color: var(--chart-green); }
+.compare .status-running { color: var(--chart-orange); }
+.compare .status-queued { color: var(--muted); }
+.compare .status-failed { color: var(--chart-red); }
+
+/* ---- plot-controls popover ------------------------------------------- */
+
+.section-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.popover {
+  position: absolute;
+  top: 42px;
+  right: 16px;
+  z-index: 10;
+  width: 240px;
+  padding: 14px 16px 16px 16px;
+  background: var(--vscode-editorWidget-background, var(--bg-side));
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.controls { display: flex; flex-direction: column; gap: 12px; }
+.control-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.control-row label { font-size: 12px; color: var(--fg); }
+.controls .field { display: flex; flex-direction: column; gap: 6px; }
+.controls .field label { font-size: 12px; color: var(--fg); }
+
+select {
+  height: 28px;
+  border: 1px solid var(--vscode-dropdown-border, var(--line-strong));
+  border-radius: 2px;
+  background: var(--vscode-dropdown-background, var(--bg));
+  color: var(--vscode-dropdown-foreground, var(--fg));
+  font-family: var(--sans);
+  font-size: 12px;
+  padding: 0 6px;
+}
+select:focus { outline: 1px solid var(--accent); }
+
+/* toggle switch */
+.toggle {
+  width: 30px; height: 17px; flex: none;
+  border-radius: 999px;
+  background: var(--vscode-button-secondaryBackground, var(--line-strong));
+  border: none;
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  cursor: pointer;
+  justify-content: flex-start;
+}
+.toggle .knob {
+  width: 13px; height: 13px; border-radius: 999px;
+  background: var(--vscode-button-secondaryForeground, var(--muted));
+}
+.toggle.on { background: var(--vscode-button-background); justify-content: flex-end; }
+.toggle.on .knob { background: var(--vscode-button-foreground); }
