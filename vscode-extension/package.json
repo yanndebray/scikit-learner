@@ -1,0 +1,100 @@
+{
+  "name": "scikit-learner",
+  "displayName": "Scikit-Learner — train and compare ML models visually",
+  "description": "The scikit-learner app as a VS Code panel. Load a CSV or a sample dataset, train 20+ scikit-learn models, compare them, export the best one. Runs against a local Python environment.",
+  "version": "0.1.0",
+  "publisher": "probabl",
+  "license": "MIT",
+  "private": true,
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yanndebray/scikit-learner.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Data Science",
+    "Machine Learning",
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "scikit-learn",
+    "machine learning",
+    "regression",
+    "classification",
+    "csv"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "scikit-learner.open",
+        "title": "Open Scikit-Learner",
+        "category": "Scikit-Learner",
+        "icon": "$(graph-scatter)"
+      },
+      {
+        "command": "scikit-learner.setupEnvironment",
+        "title": "Set up local Python environment",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.removeEnvironment",
+        "title": "Remove managed environment",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.selectInterpreter",
+        "title": "Select Python interpreter…",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.restartPython",
+        "title": "Restart Python runtime",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.showLog",
+        "title": "Show log",
+        "category": "Scikit-Learner"
+      }
+    ],
+    "configuration": {
+      "title": "Scikit-Learner",
+      "properties": {
+        "scikit-learner.python.interpreterPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to a Python interpreter with scikit-learn and pandas installed. Overrides discovery. Leave empty to let the extension find one."
+        },
+        "scikit-learner.python.useUv": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Use [uv](https://github.com/astral-sh/uv) to create the managed environment and install packages when it is on PATH. Falls back to `venv` + `pip` when uv is missing."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "sync": "node scripts/sync-assets.mjs",
+    "build": "npm run sync && node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:server && npm run test:integration",
+    "test:server": "npm run sync && node test/server.test.mjs",
+    "test:integration": "npm run build && node test/runTests.mjs",
+    "package": "npm run build && npx --yes @vscode/vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^3.1.0",
+    "esbuild": "^0.24.0",
+    "mocha": "^11.8.0",
+    "typescript": "^5.7.0"
+  }
+}

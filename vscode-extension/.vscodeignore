@@ -1,0 +1,12 @@
+# Everything the .vsix doesn't need. dist/, media/, python/ and webview/ are
+# the extension; the sources they were built from are not shipped.
+.vscode/**
+node_modules/**
+src/**
+test/**
+.vscode-test/**
+scripts/**
+esbuild.mjs
+tsconfig.json
+**/*.map
+.gitignore
