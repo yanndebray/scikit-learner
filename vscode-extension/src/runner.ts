@@ -48,6 +48,9 @@ export class LearnerRuntime implements vscode.Disposable {
   readonly onStatus = this.statusEmitter.event;
   private lastStatus: RuntimeStatus = { state: "starting", message: "Starting local Python…" };
 
+  /** Versions reported by the server's ready handshake — for the status bar. */
+  versions: { python?: string; sklearn?: string } = {};
+
   constructor(private readonly context: vscode.ExtensionContext) {}
 
   status(): RuntimeStatus {
@@ -202,6 +205,10 @@ export class LearnerRuntime implements vscode.Disposable {
         continue;
       }
       if (msg.event === "ready") {
+        this.versions = {
+          python: msg.python as string | undefined,
+          sklearn: msg.sklearn as string | undefined,
+        };
         this.readyWaiter?.resolve();
         this.readyWaiter = null;
         continue;

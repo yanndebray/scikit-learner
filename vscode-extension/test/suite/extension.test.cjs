@@ -14,10 +14,12 @@ async function activated() {
   return ext.activate();
 }
 
-suite("scikit-learner extension", () => {
-  test("activates and exposes the test API", async () => {
+suite("scikit-learner extension (0.2.0 native UI)", () => {
+  test("activates and exposes the session", async () => {
     const api = await activated();
-    assert.equal(typeof api.runtime, "function");
+    assert.ok(api.session, "activate() should return the session");
+    assert.equal(api.session.dataset, null);
+    assert.deepEqual(api.session.runs, []);
   });
 
   test("registers its commands", async () => {
@@ -25,6 +27,14 @@ suite("scikit-learner extension", () => {
     const all = await vscode.commands.getCommands(true);
     for (const id of [
       "scikit-learner.open",
+      "scikit-learner.chooseDataset",
+      "scikit-learner.loadSample",
+      "scikit-learner.trainSelected",
+      "scikit-learner.trainAll",
+      "scikit-learner.exportRun",
+      "scikit-learner.openPipeline",
+      "scikit-learner.openMetrics",
+      "scikit-learner.setTarget",
       "scikit-learner.setupEnvironment",
       "scikit-learner.selectInterpreter",
       "scikit-learner.restartPython",
@@ -34,49 +44,57 @@ suite("scikit-learner extension", () => {
     }
   });
 
-  test("open command creates the panel and its runtime", async () => {
-    const api = await activated();
-    assert.equal(api.runtime(), undefined, "no runtime before the panel opens");
+  test("open command creates the plots panel", async () => {
+    await activated();
     await vscode.commands.executeCommand("scikit-learner.open");
-    assert.ok(api.runtime(), "opening the panel should create a runtime");
-    /* Re-running the command must reveal the existing panel, not stack a
-       second session on the first. */
-    const first = api.runtime();
+    /* No throw and a webview tab exists; the panel is a singleton so a
+       second invocation must not throw either. */
     await vscode.commands.executeCommand("scikit-learner.open");
-    assert.equal(api.runtime(), first);
   });
 
-  test("end-to-end: load a sample and train through the runtime", async function () {
+  test("end-to-end: sample → train → pipeline.py → export bytes", async function () {
     if (!TEST_PYTHON) {
       this.skip();
       return;
     }
-    /* Point discovery at the provided interpreter so the runtime starts
-       without any first-run dialog. */
     await vscode.workspace
       .getConfiguration("scikit-learner")
       .update("python.interpreterPath", TEST_PYTHON, vscode.ConfigurationTarget.Global);
 
     const api = await activated();
-    await vscode.commands.executeCommand("scikit-learner.open");
-    const runtime = api.runtime();
-    assert.ok(runtime);
+    const session = api.session;
 
-    const load = await runtime.call("load_sample", ["synthetic"]);
-    assert.equal(load.result.success, true);
-    assert.equal(load.result.stats.rows, 500);
+    await session.loadSample("synthetic");
+    assert.equal(session.dataset.taskType, "regression");
+    assert.equal(session.dataset.rows, 500);
+    assert.equal(session.dataset.target, "target");
+    assert.ok(session.catalog.length > 20, "regression catalog should be populated");
+    assert.ok(session.preview, "data preview should be cached for the scatter tab");
 
-    const features = load.result.numeric_columns.filter((c) => c !== "target");
-    const trained = await runtime.call("train", [
-      "linear_regression",
-      features,
-      "target",
-      5,
-      "regression",
-    ]);
-    assert.ok(trained.result.metrics.r2 > 0.5, `r2 was ${trained.result.metrics.r2}`);
+    await session.train(["linear_regression", "ridge"]);
+    const done = session.runs.filter((r) => r.status === "done");
+    assert.equal(done.length, 2, JSON.stringify(session.runs));
+    const lr = session.run("linear_regression");
+    assert.ok(lr.metrics.r2 > 0.5, `r2 was ${lr.metrics.r2}`);
+    assert.ok(lr.details.predictions.length === 500, "details should be loaded for plots");
+    assert.ok(session.selectedRunKey, "best run should be auto-selected");
 
-    const exported = await runtime.call("export_model", [trained.result.model_id]);
+    /* Generated pipeline.py reflects the selected run. */
+    const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse("scikit-learner:pipeline.py"));
+    const text = doc.getText();
+    assert.match(text, /from sklearn\./);
+    assert.match(text, /StandardScaler\(\)/);
+    assert.match(text, /cross_val_score\(model, X_scaled, y, cv=5/);
+
+    /* metrics.json lists both runs. */
+    const metricsDoc = await vscode.workspace.openTextDocument(
+      vscode.Uri.parse("scikit-learner:metrics.json")
+    );
+    const metrics = JSON.parse(metricsDoc.getText());
+    assert.equal(metrics.runs.length, 2);
+
+    /* Export path (bytes, skipping the save dialog). */
+    const exported = await session.runtime.call("export_model", [lr.modelId]);
     assert.ok(exported.bin, "export should produce a binary payload");
     assert.ok(Buffer.from(exported.bin, "base64").length > 100);
   });

@@ -1,0 +1,324 @@
+/* Probabl tokens (colors_and_type.css, dark surface) applied to the plots
+   editor. The canvas deliberately stays midnight-branded in every VS Code
+   theme — the native chrome around it follows the theme instead. */
+
+:root {
+  --midnight: #040524;
+  --midnight-2: #0E1049;
+  --midnight-3: #1B1D58;
+  --line: #1B1D58;
+  --line-strong: #34366D;
+  --sky: #4CD0FF;
+  --sky-soft: #8EE1FF;
+  --orange: #FF7900;
+  --mint: #78F0C8;
+  --red: #FF6B6B;
+  --white: #F4F2EC;
+  --mist: #CCCCD7;
+  --slate: #8C8EA8;
+  --graphite: #3C3E60;
+  --sans: "Switzer", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --serif: "IBM Plex Serif", "Source Serif Pro", Georgia, serif;
+  --mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--midnight);
+  color: var(--white);
+  font-family: var(--sans);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app { height: 100%; display: flex; flex-direction: column; }
+
+.banner {
+  padding: 6px 16px;
+  font-size: 12px;
+  background: var(--midnight-2);
+  border-bottom: 1px solid var(--line-strong);
+  color: var(--mist);
+}
+.banner.error { color: var(--red); }
+
+/* ---- empty state (design 1c) --------------------------------------- */
+
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.empty .inner {
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: center;
+  align-items: center;
+}
+.empty h1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+  color: var(--white);
+}
+.empty p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--slate);
+  line-height: 1.6;
+}
+.empty .buttons { display: flex; gap: 10px; margin-top: 6px; }
+
+.btn {
+  height: 32px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--sans);
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn.primary { background: var(--orange); color: var(--midnight); font-weight: 500; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.outline { background: transparent; border: 1px solid var(--line-strong); color: var(--mist); }
+.btn.outline:hover { border-color: var(--slate); color: var(--white); }
+.btn.small { height: 30px; font-size: 12px; width: 100%; justify-content: center; }
+
+/* ---- main layout (design 1a) ---------------------------------------- */
+
+.layout { flex: 1; display: flex; min-height: 0; }
+.center { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+.tabs {
+  height: 38px;
+  display: flex;
+  align-items: stretch;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+.tabs .tab {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: 13px;
+  color: var(--slate);
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: var(--sans);
+}
+.tabs .tab:hover { color: var(--mist); }
+.tabs .tab.active { color: var(--white); box-shadow: inset 0 -2px 0 var(--sky); }
+.tabs .spacer { flex: 1; }
+.tabs .action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--slate);
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: var(--sans);
+}
+.tabs .action:hover { color: var(--mist); }
+
+.plot-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 28px 20px 28px;
+  min-width: 0;
+  min-height: 0;
+}
+.plot-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  gap: 16px;
+}
+.plot-head .title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--white);
+}
+.plot-head .meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--slate);
+  white-space: nowrap;
+}
+.plot-canvas { flex: 1; min-height: 0; }
+.plot-canvas svg { width: 100%; height: 100%; display: block; }
+
+.plot-hint {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--slate);
+  font-size: 14px;
+}
+
+/* ---- comparison table (design 1b) ------------------------------------ */
+
+.compare { padding: 0; width: 100%; border-collapse: collapse; font-size: 13px; }
+.compare th {
+  text-align: right;
+  padding: 8px 0 8px 24px;
+  border-bottom: 1px solid var(--line-strong);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  font-weight: 400;
+  color: var(--slate);
+}
+.compare th:first-child { text-align: left; padding-left: 0; }
+.compare td {
+  text-align: right;
+  padding: 11px 0 11px 24px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  color: var(--mist);
+  white-space: nowrap;
+}
+.compare td:first-child {
+  text-align: left;
+  padding-left: 0;
+  font-family: var(--sans);
+  color: var(--white);
+}
+.compare tr { cursor: pointer; }
+.compare tr:hover td { background: rgba(76, 208, 255, 0.04); }
+.compare tr.selected td:first-child { color: var(--sky); }
+.compare .best { color: var(--white); }
+.compare .status-done { color: var(--mint); }
+.compare .status-running { color: var(--orange); }
+.compare .status-queued { color: var(--slate); }
+.compare .status-failed { color: var(--red); }
+
+/* ---- run inspector (design 1a right column) --------------------------- */
+
+.inspector {
+  width: 288px;
+  flex: none;
+  background: var(--midnight-2);
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.inspector .head {
+  height: 36px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+.inspector .head span {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--slate);
+}
+.inspector .head button {
+  border: none;
+  background: none;
+  color: var(--slate);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px;
+}
+.inspector .head button:hover { color: var(--white); }
+
+.inspector section { border-top: 1px solid var(--line); padding: 14px 16px 18px 16px; }
+.inspector .section-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--slate);
+  margin-bottom: 12px;
+}
+.inspector .run-title { display: flex; align-items: center; gap: 8px; }
+.inspector .run-title .dot {
+  width: 7px; height: 7px; border-radius: 999px; background: var(--sky); flex: none;
+}
+.inspector .run-title .name { font-size: 15px; font-weight: 500; color: var(--white); }
+.inspector .run-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--slate);
+  margin-top: 6px;
+}
+
+.kv { display: flex; flex-direction: column; gap: 9px; font-family: var(--mono); font-size: 12px; }
+.kv div { display: flex; justify-content: space-between; gap: 12px; }
+.kv .k { color: var(--mist); overflow: hidden; text-overflow: ellipsis; }
+.kv .v { color: var(--white); white-space: nowrap; }
+
+.controls { display: flex; flex-direction: column; gap: 12px; }
+.control-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.control-row label { font-size: 12px; color: var(--mist); }
+.controls .field { display: flex; flex-direction: column; gap: 6px; }
+.controls .field label { font-size: 12px; color: var(--mist); }
+
+select {
+  height: 28px;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  background: var(--midnight);
+  color: var(--white);
+  font-family: var(--sans);
+  font-size: 12px;
+  padding: 0 6px;
+}
+select:focus { outline: 1px solid var(--sky); }
+
+/* toggle switch (design: orange when on) */
+.toggle {
+  width: 30px; height: 17px; flex: none;
+  border-radius: 999px;
+  background: var(--midnight-3);
+  border: none;
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  cursor: pointer;
+  justify-content: flex-start;
+}
+.toggle .knob { width: 13px; height: 13px; border-radius: 999px; background: var(--slate); }
+.toggle.on { background: var(--orange); justify-content: flex-end; }
+.toggle.on .knob { background: var(--midnight); }
+
+.inspector .actions { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+
+/* re-open inspector affordance when hidden */
+.inspector-opener {
+  position: absolute;
+  top: 46px;
+  right: 12px;
+  border: 1px solid var(--line-strong);
+  background: var(--midnight-2);
+  color: var(--slate);
+  border-radius: 2px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.inspector-opener:hover { color: var(--white); }
+.center { position: relative; }

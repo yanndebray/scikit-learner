@@ -71,19 +71,24 @@ class Client {
 const client = usable ? new Client() : null;
 after(() => client?.kill());
 
-test("server boots and reports ready", async () => {
+test("server boots and reports ready with versions", async () => {
   const hello = await client.next();
   assert.equal(
     hello.event,
     "ready",
     `expected the ready event, got ${JSON.stringify(hello)} — is scikit-learn installed in ${python}?`
   );
+  assert.match(hello.python ?? "", /^\d+\.\d+/, "ready event should carry the python version");
+  assert.match(hello.sklearn ?? "", /^\d+\.\d+/, "ready event should carry the sklearn version");
 });
 
-test("available_models returns both task types", async () => {
+test("available_models returns both task types with codegen metadata", async () => {
   const reg = await client.call("available_models", ["regression"]);
   assert.equal(reg.ok, true);
   assert.ok(Object.keys(reg.result.models).includes("Linear"));
+  const linear = reg.result.models.Linear.find((m) => m.key === "linear_regression");
+  assert.equal(linear.class_name, "LinearRegression");
+  assert.equal(linear.module, "sklearn.linear_model");
 
   const clf = await client.call("available_models", ["classification"]);
   assert.equal(clf.ok, true);

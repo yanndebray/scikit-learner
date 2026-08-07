@@ -142,7 +142,16 @@ def available_models(task_type: str = "regression") -> dict:
     by_category: dict[str, list] = {}
     for key, info in src.items():
         by_category.setdefault(info["category"], []).append(
-            {"key": key, "name": info["name"], "params": _serializable_params(info["params"])}
+            {
+                "key": key,
+                "name": info["name"],
+                "params": _serializable_params(info["params"]),
+                # For consumers that generate equivalent sklearn code (the VS
+                # Code extension's pipeline.py). Public module path, not the
+                # private submodule the class is defined in.
+                "class_name": info["class"].__name__,
+                "module": info["class"].__module__.split("._")[0],
+            }
         )
     return {"models": by_category, "task_type": task_type}
 

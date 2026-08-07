@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  Scikit-Learner plots editor (design 1a–1c, claude.ai/design project
+  160558bd). Self-contained: no CDNs, no Plotly, no Bootstrap — charts are
+  hand-rolled SVG in the Probabl palette. {{cspSource}}/{{css}}/{{js}} are
+  filled in by src/plotsPanel.ts.
+-->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src {{cspSource}}; script-src {{cspSource}}; img-src data:;">
+<title>Scikit-Learner</title>
+<link rel="stylesheet" href="{{css}}">
+</head>
+<body>
+  <div id="banner" class="banner" hidden></div>
+  <div id="app"></div>
+  <script src="{{js}}"></script>
+</body>
+</html>

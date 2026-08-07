@@ -1,8 +1,8 @@
 {
   "name": "scikit-learner",
   "displayName": "Scikit-Learner — train and compare ML models visually",
-  "description": "The scikit-learner app as a VS Code panel. Load a CSV or a sample dataset, train 20+ scikit-learn models, compare them, export the best one. Runs against a local Python environment.",
-  "version": "0.1.0",
+  "description": "Native VS Code ML workbench on scikit-learn. Pick a CSV or sample dataset in the sidebar, train 20+ models, compare runs, read the generated sklearn pipeline, export the best model. Runs against a local Python environment.",
+  "version": "0.2.0",
   "publisher": "probabl",
   "license": "MIT",
   "private": true,
@@ -30,12 +30,101 @@
   "main": "./dist/extension.js",
   "activationEvents": [],
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "scikit-learner",
+          "title": "Scikit-Learner",
+          "icon": "media/flask.svg"
+        }
+      ]
+    },
+    "views": {
+      "scikit-learner": [
+        {
+          "id": "scikit-learner.dataset",
+          "name": "Dataset"
+        },
+        {
+          "id": "scikit-learner.models",
+          "name": "Models"
+        },
+        {
+          "id": "scikit-learner.runs",
+          "name": "Runs"
+        },
+        {
+          "id": "scikit-learner.artifacts",
+          "name": "Artifacts"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "scikit-learner.open",
-        "title": "Open Scikit-Learner",
+        "title": "Open plots",
         "category": "Scikit-Learner",
         "icon": "$(graph-scatter)"
+      },
+      {
+        "command": "scikit-learner.chooseDataset",
+        "title": "Choose dataset…",
+        "category": "Scikit-Learner",
+        "icon": "$(add)"
+      },
+      {
+        "command": "scikit-learner.loadSample",
+        "title": "Load a sample dataset…",
+        "category": "Scikit-Learner",
+        "icon": "$(database)"
+      },
+      {
+        "command": "scikit-learner.setTarget",
+        "title": "Set target column…",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.selectFeatures",
+        "title": "Select feature columns…",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.setTask",
+        "title": "Set task type…",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.setValidation",
+        "title": "Set cross-validation folds…",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.trainSelected",
+        "title": "Train selected models",
+        "category": "Scikit-Learner",
+        "icon": "$(play)"
+      },
+      {
+        "command": "scikit-learner.trainAll",
+        "title": "Train all models",
+        "category": "Scikit-Learner",
+        "icon": "$(run-all)"
+      },
+      {
+        "command": "scikit-learner.exportRun",
+        "title": "Export model (joblib)",
+        "category": "Scikit-Learner",
+        "icon": "$(desktop-download)"
+      },
+      {
+        "command": "scikit-learner.openPipeline",
+        "title": "Open generated pipeline.py",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.openMetrics",
+        "title": "Open metrics.json",
+        "category": "Scikit-Learner"
       },
       {
         "command": "scikit-learner.setupEnvironment",
@@ -61,8 +150,63 @@
         "command": "scikit-learner.showLog",
         "title": "Show log",
         "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.loadCsv",
+        "title": "Load CSV",
+        "category": "Scikit-Learner"
+      },
+      {
+        "command": "scikit-learner.selectRun",
+        "title": "Select run",
+        "category": "Scikit-Learner"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "scikit-learner.chooseDataset",
+          "when": "view == scikit-learner.dataset",
+          "group": "navigation@1"
+        },
+        {
+          "command": "scikit-learner.loadSample",
+          "when": "view == scikit-learner.dataset",
+          "group": "navigation@2"
+        },
+        {
+          "command": "scikit-learner.trainSelected",
+          "when": "view == scikit-learner.models",
+          "group": "navigation@1"
+        },
+        {
+          "command": "scikit-learner.trainAll",
+          "when": "view == scikit-learner.models"
+        },
+        {
+          "command": "scikit-learner.open",
+          "when": "view == scikit-learner.runs",
+          "group": "navigation@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "scikit-learner.exportRun",
+          "when": "view == scikit-learner.runs && viewItem == run-done",
+          "group": "inline"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "scikit-learner.loadCsv",
+          "when": "false"
+        },
+        {
+          "command": "scikit-learner.selectRun",
+          "when": "false"
+        }
+      ]
+    },
     "configuration": {
       "title": "Scikit-Learner",
       "properties": {

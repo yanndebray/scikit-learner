@@ -78,7 +78,17 @@ def main() -> None:
         emit({"event": "fatal", "error": f"{type(exc).__name__}: {exc}"})
         sys.exit(1)
 
-    emit({"event": "ready"})
+    versions = {}
+    try:
+        import platform
+
+        import sklearn
+
+        versions = {"python": platform.python_version(), "sklearn": sklearn.__version__}
+    except Exception:  # noqa: BLE001 — versions are cosmetic; never block readiness
+        pass
+
+    emit({"event": "ready", **versions})
 
     for line in sys.stdin:
         line = line.strip()
