@@ -99,12 +99,10 @@ html, body {
   color: var(--vscode-button-secondaryForeground, var(--fg));
 }
 .btn.outline:hover { background: var(--vscode-button-secondaryHoverBackground, transparent); }
-.btn.small { height: 30px; font-size: 12px; width: 100%; justify-content: center; }
 
 /* ---- main layout (design 1a) ---------------------------------------- */
 
-.layout { flex: 1; display: flex; min-height: 0; }
-.center { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+.center { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; }
 
 .tabs {
   height: 38px;
@@ -113,7 +111,11 @@ html, body {
   padding: 0 24px;
   border-bottom: 1px solid var(--line);
   flex: none;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.tabs::-webkit-scrollbar { display: none; }
 .tabs .tab {
   display: flex;
   align-items: center;
@@ -124,6 +126,8 @@ html, body {
   border: none;
   background: none;
   font-family: var(--sans);
+  white-space: nowrap;
+  flex: none;
 }
 .tabs .tab:hover { color: var(--fg); }
 .tabs .tab.active { color: var(--fg); box-shadow: inset 0 -2px 0 var(--tab-active); }
@@ -138,8 +142,10 @@ html, body {
   border: none;
   background: none;
   font-family: var(--sans);
+  white-space: nowrap;
+  flex: none;
 }
-.tabs .action:hover { color: var(--fg); }
+.tabs .action:hover, .tabs .action.active { color: var(--fg); }
 
 .plot-area {
   flex: 1;
@@ -161,6 +167,10 @@ html, body {
   font-size: 21px;
   letter-spacing: -0.01em;
   color: var(--fg);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .plot-head .meta {
   font-family: var(--mono);
@@ -211,64 +221,27 @@ html, body {
 .compare .status-queued { color: var(--muted); }
 .compare .status-failed { color: var(--chart-red); }
 
-/* ---- run inspector (design 1a right column) --------------------------- */
+/* ---- plot-controls popover ------------------------------------------- */
 
-.inspector {
-  width: 288px;
-  flex: none;
-  background: var(--bg-side);
-  border-left: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-.inspector .head {
-  height: 36px;
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-}
-.inspector .head span {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-}
-.inspector .head button {
-  border: none;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 1;
-  padding: 2px;
-}
-.inspector .head button:hover { color: var(--fg); }
-
-.inspector section { border-top: 1px solid var(--line); padding: 14px 16px 18px 16px; }
-.inspector .section-label {
+.section-label {
   font-size: 11px;
   letter-spacing: 0.12em;
   color: var(--muted);
   margin-bottom: 12px;
 }
-.inspector .run-title { display: flex; align-items: center; gap: 8px; }
-.inspector .run-title .dot {
-  width: 7px; height: 7px; border-radius: 999px; background: var(--chart-blue); flex: none;
-}
-.inspector .run-title .name { font-size: 15px; font-weight: 500; color: var(--fg); }
-.inspector .run-meta {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 6px;
-}
 
-.kv { display: flex; flex-direction: column; gap: 9px; font-family: var(--mono); font-size: 12px; }
-.kv div { display: flex; justify-content: space-between; gap: 12px; }
-.kv .k { color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
-.kv .v { color: var(--fg); white-space: nowrap; }
+.popover {
+  position: absolute;
+  top: 42px;
+  right: 16px;
+  z-index: 10;
+  width: 240px;
+  padding: 14px 16px 16px 16px;
+  background: var(--vscode-editorWidget-background, var(--bg-side));
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
 
 .controls { display: flex; flex-direction: column; gap: 12px; }
 .control-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -306,19 +279,3 @@ select:focus { outline: 1px solid var(--accent); }
 }
 .toggle.on { background: var(--vscode-button-background); justify-content: flex-end; }
 .toggle.on .knob { background: var(--vscode-button-foreground); }
-
-/* re-open inspector affordance when hidden */
-.inspector-opener {
-  position: absolute;
-  top: 46px;
-  right: 12px;
-  border: 1px solid var(--line-strong);
-  background: var(--bg-side);
-  color: var(--muted);
-  border-radius: 2px;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  padding: 4px 8px;
-  cursor: pointer;
-}
-.inspector-opener:hover { color: var(--fg); }

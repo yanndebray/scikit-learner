@@ -115,7 +115,6 @@ function adopt(
 function snapshot(session: Session): Record<string, unknown> {
   const ds = session.dataset;
   const selected = session.selectedRun();
-  const model = selected && session.catalog.find((m) => m.key === selected.key);
   return {
     runtime: session.runtime.status(),
     training: session.training,
@@ -144,7 +143,6 @@ function snapshot(session: Session): Record<string, unknown> {
       metrics: selected.metrics,
       fitSeconds: selected.fitSeconds,
       trainedAt: selected.trainedAt,
-      hyperparams: model?.params ?? {},
       details: selected.details ?? null,
     },
   };

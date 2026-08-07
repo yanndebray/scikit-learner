@@ -5,7 +5,7 @@
  * draws it. Charts are hand-rolled SVG colored from the active VS Code
  * theme's --vscode-* variables (charts.*, chrome tokens) — no Plotly, no
  * external anything. The bundled "Probabl Dark" theme supplies the brand
- * look. Local UI state (active tab, inspector, plot controls) lives here;
+ * look. Local UI state (active tab, plot-controls popover) lives here;
  * everything that mutates the session goes back to the host as a command
  * message.
  */
@@ -57,13 +57,21 @@
   let state = null;
   const ui = {
     tab: null,
-    inspector: true,
+    popover: false,
     colourBy: "actual", // actual | predicted
     ref45: true,
     jitter: false,
     scatterX: null,
     scatterY: null,
   };
+
+  /* Close the plot-controls popover on any click outside it or its button. */
+  document.addEventListener("click", (e) => {
+    if (!ui.popover) return;
+    if (e.target.closest("#popover") || e.target.closest("#gear")) return;
+    ui.popover = false;
+    render();
+  });
 
   const app = document.getElementById("app");
   const banner = document.getElementById("banner");
@@ -378,9 +386,20 @@
       ui.tab === "residuals" ? residualsChart() :
       ui.tab === "confusion" ? confusionChart() : rocChart();
 
+    /* Run identity + timing used to live in the inspector column; now it
+       rides the plot header's meta line (the sidebar RUNS view carries the
+       full metrics/hyperparameters). */
+    if (chart && !chart.hint && state.selected && ui.tab !== "scatter" && ui.tab !== "compare") {
+      const sel = state.selected;
+      chart.meta += ` · ${relTime(sel.trainedAt)}${sel.fitSeconds != null ? ` · ${sel.fitSeconds.toFixed(2)}s train` : ""}`;
+    }
+
     const tabButtons = tabs.map((t) =>
       `<button class="tab ${t === ui.tab ? "active" : ""}" data-tab="${t}">${TAB_LABELS[t]}</button>`
     ).join("");
+    const hasControls = ui.tab === "scatter" || ui.tab === "pred";
+    const gear = hasControls
+      ? `<button class="action ${ui.popover ? "active" : ""}" id="gear" title="Plot controls">⚙ Plot</button>` : "";
     const savePng = ui.tab !== "compare" && chart && chart.svg
       ? `<button class="action" id="save-png">↓ Save PNG</button>` : "";
 
@@ -388,41 +407,24 @@
       ? `<div class="plot-area"><div class="plot-head"><div class="title">Comparison — ${state.dataset.cvFolds}-fold cross-validation</div></div><div style="overflow:auto; min-height:0;">${compareHtml()}</div></div>`
       : chart.hint
         ? `<div class="plot-hint">${esc(chart.hint)}</div>`
-        : `<div class="plot-area"><div class="plot-head"><div class="title">${chart.title}</div><div class="meta">${chart.meta}</div></div><div class="plot-canvas" id="plot-canvas">${chart.svg}</div></div>`;
+        : `<div class="plot-area"><div class="plot-head"><div class="title" title="${esc(chart.title)}">${chart.title}</div><div class="meta">${chart.meta}</div></div><div class="plot-canvas" id="plot-canvas">${chart.svg}</div></div>`;
 
-    app.innerHTML = `<div class="layout">
-      <div class="center">
-        <div class="tabs">${tabButtons}<div class="spacer"></div>${savePng}</div>
-        ${body}
-        ${!ui.inspector ? `<button class="inspector-opener" id="open-inspector">INSPECTOR</button>` : ""}
-      </div>
-      ${ui.inspector ? inspectorHtml() : ""}
+    app.innerHTML = `<div class="center">
+      <div class="tabs">${tabButtons}<div class="spacer"></div>${gear}${savePng}</div>
+      ${ui.popover && hasControls ? popoverHtml() : ""}
+      ${body}
     </div>`;
 
     wire();
   }
 
-  function inspectorHtml() {
+  /* Plot-scoped controls, in a small popover under the ⚙ button — costs no
+     standing width, so the chart keeps the whole editor at any split size. */
+  function popoverHtml() {
     const sel = state.selected;
-    const parts = [];
-    parts.push(`<div class="head"><span>RUN INSPECTOR</span><button id="close-inspector" title="Hide">✕</button></div>`);
-    if (sel) {
-      parts.push(`<section>
-        <div class="run-title"><span class="dot"></span><span class="name">${esc(sel.name)}</span></div>
-        <div class="run-meta">${esc(sel.category)} · ${relTime(sel.trainedAt)}${sel.fitSeconds != null ? ` · ${sel.fitSeconds.toFixed(2)}s train` : ""}</div>
-      </section>`);
-      const metrics = Object.entries(sel.metrics || {})
-        .map(([k, v]) => `<div><span class="k">${esc(k)}</span><span class="v">${fmt(v, 4)}</span></div>`)
-        .join("");
-      parts.push(`<section><div class="section-label">METRICS</div><div class="kv">${metrics}</div></section>`);
-    } else {
-      parts.push(`<section><div class="run-meta">No run selected — train a model, then pick it in the RUNS view.</div></section>`);
-    }
-
-    /* PLOT controls, scoped to the active tab. */
     let controls = "";
     if (ui.tab === "scatter") {
-      const opts = (sel2, cols) => cols.map((c) => `<option value="${esc(c)}" ${c === sel2 ? "selected" : ""}>${esc(c)}</option>`).join("");
+      const opts = (current, cols) => cols.map((c) => `<option value="${esc(c)}" ${c === current ? "selected" : ""}>${esc(c)}</option>`).join("");
       const cols = (state.preview && state.preview.columns) || [];
       controls = `
         <div class="field"><label>X axis</label><select id="scatter-x">${opts(ui.scatterX, cols)}</select></div>
@@ -436,19 +438,7 @@
         <div class="control-row"><label>45° reference</label><button class="toggle ${ui.ref45 ? "on" : ""}" id="toggle-45"><span class="knob"></span></button></div>
         <div class="control-row"><label>Jitter overlapping points</label><button class="toggle ${ui.jitter ? "on" : ""}" id="toggle-jitter"><span class="knob"></span></button></div>`;
     }
-    if (controls) parts.push(`<section><div class="section-label">PLOT</div><div class="controls">${controls}</div></section>`);
-
-    if (sel) {
-      const hp = Object.entries(sel.hyperparams || {})
-        .map(([k, v]) => `<div><span class="k">${esc(k)}</span><span class="v">${esc(JSON.stringify(v))}</span></div>`)
-        .join("") || `<div><span class="k">defaults</span></div>`;
-      parts.push(`<section style="flex:1;"><div class="section-label">HYPERPARAMETERS</div><div class="kv">${hp}</div>
-        <div class="actions">
-          <button class="btn primary small" id="export-model">↓ Export model</button>
-          <button class="btn outline small" id="open-pipeline">Open pipeline.py</button>
-        </div></section>`);
-    }
-    return `<div class="inspector">${parts.join("")}</div>`;
+    return `<div class="popover" id="popover"><div class="section-label">PLOT</div><div class="controls">${controls}</div></div>`;
   }
 
   function renderEmpty() {
@@ -486,12 +476,9 @@
       b.onclick = () => { ui.tab = b.dataset.tab; render(); };
     }
     const on = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
-    on("close-inspector", () => { ui.inspector = false; render(); });
-    on("open-inspector", () => { ui.inspector = true; render(); });
+    on("gear", () => { ui.popover = !ui.popover; render(); });
     on("toggle-45", () => { ui.ref45 = !ui.ref45; render(); });
     on("toggle-jitter", () => { ui.jitter = !ui.jitter; render(); });
-    on("export-model", () => vscode.postMessage({ cmd: "exportRun", key: state.selected.key }));
-    on("open-pipeline", () => vscode.postMessage({ cmd: "openPipeline" }));
     on("save-png", savePng);
     const sx = document.getElementById("scatter-x");
     if (sx) sx.onchange = () => { ui.scatterX = sx.value; render(); };

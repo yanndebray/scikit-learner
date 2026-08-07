@@ -9,9 +9,9 @@ Everything runs in a **local Python environment** — real CPython, your machine
 - **Activity bar → Scikit-Learner** (flask icon): four sidebar views.
   - **Dataset** — workspace CSVs when nothing is loaded; the loaded file plus target / features / task / validation rows (click to change) once there is.
   - **Models** — the catalog as a checkbox tree grouped by category; ▶ in the header trains the checked set, *Train all* in the overflow menu.
-  - **Runs** — ranked results with scores; running / queued / failed states live here during training. Click a run to inspect it.
+  - **Runs** — ranked results with scores; running / queued / failed states live here during training. Click a run to plot it; expand it for its metrics and hyperparameters.
   - **Artifacts** — generated `pipeline.py` and `metrics.json` (read-only virtual documents), plus a `.joblib` export per trained run.
-- **Editor tab** — plots (hand-rolled SVG, no CDNs) that follow your VS Code color theme, including `charts.*` colors: Scatter, Predicted vs actual, Residuals or Confusion matrix + ROC, Comparison table, with a Save PNG action and a run-inspector column (metrics, plot controls, hyperparameters, export).
+- **Editor tab** — plots (hand-rolled SVG, no CDNs) that follow your VS Code color theme, including `charts.*` colors: Scatter, Predicted vs actual, Residuals or Confusion matrix + ROC, Comparison table, with Save PNG and a ⚙ popover for plot controls. The chart always gets the full editor width — run details live in the sidebar, so narrow splits stay usable.
 - **Probabl Dark** — a complete bundled color theme (midnight indigo + orange spark, sky accents) covering workbench, syntax, terminal and chart colors. `Preferences: Color Theme → Probabl Dark` restores the full brand look from the design mock.
 - **Status bar** — Python env + training progress (`Training 2 of 4`) or `n runs · best 0.967`.
 - **Output → Scikit-Learner** — one log line per trained model.

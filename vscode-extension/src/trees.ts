@@ -144,10 +144,36 @@ export class ModelsTree extends SessionTree<ModelNode> {
 }
 
 /* ---- RUNS ------------------------------------------------------------ */
+/*                                                                        */
+/*  Since 0.2.2 the run inspector column is gone from the plots editor    */
+/*  (it fought for width with split editors); a done run expands here     */
+/*  instead, showing its metrics and hyperparameters as child rows.       */
 
-export class RunsTree extends SessionTree<Run> {
-  getTreeItem(run: Run): vscode.TreeItem {
-    const item = new vscode.TreeItem(run.name);
+export type RunNode =
+  | { kind: "run"; key: string }
+  | { kind: "kv"; label: string; value: string }
+  | { kind: "hp-group"; key: string };
+
+export class RunsTree extends SessionTree<RunNode> {
+  getTreeItem(node: RunNode): vscode.TreeItem {
+    if (node.kind === "kv") {
+      const item = new vscode.TreeItem(node.label);
+      item.description = node.value;
+      return item;
+    }
+    if (node.kind === "hp-group") {
+      const item = new vscode.TreeItem("hyperparameters", vscode.TreeItemCollapsibleState.Collapsed);
+      item.iconPath = new vscode.ThemeIcon("settings");
+      return item;
+    }
+
+    const run = this.session.run(node.key)!;
+    const item = new vscode.TreeItem(
+      run.name,
+      run.status === "done"
+        ? vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.None
+    );
     const metric =
       this.session.dataset?.taskType === "classification" ? "cv_accuracy_mean" : "cv_r2_mean";
     switch (run.status) {
@@ -171,27 +197,49 @@ export class RunsTree extends SessionTree<Run> {
           new vscode.ThemeColor(selected ? "charts.blue" : "charts.green")
         );
         item.description = (run.metrics?.[metric] ?? 0).toFixed(3);
-        item.tooltip = Object.entries(run.metrics ?? {})
-          .map(([k, v]) => `${k} = ${v}`)
-          .join("\n");
+        item.tooltip = `${run.category}${run.fitSeconds != null ? ` · ${run.fitSeconds.toFixed(2)}s train` : ""}`;
         break;
       }
     }
-    item.command = { command: "scikit-learner.selectRun", title: "Select run", arguments: [run.key] };
+    item.command = { command: "scikit-learner.selectRun", title: "Select run", arguments: [node.key] };
     item.contextValue = run.status === "done" ? "run-done" : "run";
     return item;
   }
 
-  getChildren(node?: Run): Run[] {
-    if (node) return [];
-    const metric =
-      this.session.dataset?.taskType === "classification" ? "cv_accuracy_mean" : "cv_r2_mean";
-    const order: Record<string, number> = { running: 0, queued: 1, done: 2, failed: 3 };
-    return [...this.session.runs].sort(
-      (a, b) =>
-        order[a.status] - order[b.status] ||
-        (b.metrics?.[metric] ?? -1) - (a.metrics?.[metric] ?? -1)
-    );
+  getChildren(node?: RunNode): RunNode[] {
+    if (!node) {
+      const metric =
+        this.session.dataset?.taskType === "classification" ? "cv_accuracy_mean" : "cv_r2_mean";
+      const order: Record<string, number> = { running: 0, queued: 1, done: 2, failed: 3 };
+      return [...this.session.runs]
+        .sort(
+          (a, b) =>
+            order[a.status] - order[b.status] ||
+            (b.metrics?.[metric] ?? -1) - (a.metrics?.[metric] ?? -1)
+        )
+        .map((r) => ({ kind: "run" as const, key: r.key }));
+    }
+    if (node.kind === "run") {
+      const run = this.session.run(node.key);
+      if (!run || run.status !== "done") return [];
+      const metrics = Object.entries(run.metrics ?? {}).map(([k, v]) => ({
+        kind: "kv" as const,
+        label: k,
+        value: typeof v === "number" ? v.toFixed(4) : String(v),
+      }));
+      const hasParams =
+        Object.keys(this.session.catalog.find((m) => m.key === node.key)?.params ?? {}).length > 0;
+      return [...metrics, ...(hasParams ? [{ kind: "hp-group" as const, key: node.key }] : [])];
+    }
+    if (node.kind === "hp-group") {
+      const params = this.session.catalog.find((m) => m.key === node.key)?.params ?? {};
+      return Object.entries(params).map(([k, v]) => ({
+        kind: "kv" as const,
+        label: k,
+        value: JSON.stringify(v),
+      }));
+    }
+    return [];
   }
 }
 
