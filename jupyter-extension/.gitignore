@@ -1,0 +1,19 @@
+node_modules/
+lib/
+tsconfig.tsbuildinfo
+scikit_learner_jupyter/labextension/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Build outputs of the JupyterLite demo site.
+lite/_output/
+lite/.jupyterlite.doit.db
+
+# Synced from ../frontend by scripts/gen-assets.mjs — single source of truth
+# lives there, exactly as the VS Code extension and the PyPI wheel do it.
+src/generated/
+# lite/files is the JupyterLite site's seed contents: airfoil.csv is copied in
+# by gen-assets.mjs, and anything the extension writes while you are testing
+# (pipeline.py, metrics.json, .joblib) lands here too. All of it is output.
+lite/files/*
+!lite/files/.gitkeep

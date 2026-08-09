@@ -50,6 +50,21 @@ Edit any file under `frontend/` and reload the browser.
 
 If you change `frontend/py/learner.py`, the browser fetches it fresh on reload — but Pyodide doesn't pick up the change until the module is re-imported. Hard-reload (Cmd-Shift-R / Ctrl-F5) or open a new tab.
 
+## Inside an editor
+
+The same workbench, in the two places people already have a Python file open.
+Both are ports of each other rather than rewrites: same four sidebar sections
+(dataset, models, runs, artifacts), same commands, same session model, and the
+same `learner.py` — no shell keeps a copy of it.
+
+- **[`vscode-extension/`](vscode-extension)** — a native VS Code sidebar plus a
+  plots editor, fitting models in a local Python environment the extension can
+  set up for you.
+- **[`jupyter-extension/`](jupyter-extension)** — the same panel for JupyterLab
+  4 and JupyterLite, fitting models in the notebook kernel. In JupyterLite that
+  kernel is Pyodide, so it runs with no server at all and nothing is uploaded;
+  the plots tab runs the VS Code extension's chart renderer verbatim.
+
 ## Deploy
 
 Upload `frontend/` to any static host (Netlify, GitHub Pages, S3, …).

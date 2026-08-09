@@ -1,0 +1,77 @@
+[build-system]
+requires = [
+    "hatchling>=1.21",
+    "hatch-nodejs-version>=0.3.2",
+    "hatch-jupyter-builder>=0.9",
+    "jupyter-builder>=1.2.0,<2",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "scikit_learner_jupyter"
+dynamic = ["version"]
+description = "Train and compare scikit-learn models from a side panel, in JupyterLab and JupyterLite."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "probabl" }]
+keywords = ["jupyter", "jupyterlab", "jupyterlab-extension", "jupyterlite", "scikit-learn"]
+classifiers = [
+    "Framework :: Jupyter",
+    "Framework :: Jupyter :: JupyterLab",
+    "Framework :: Jupyter :: JupyterLab :: 4",
+    "Framework :: Jupyter :: JupyterLab :: Extensions",
+    "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
+
+# Deliberately empty. This is a prebuilt (federated) extension: the JavaScript
+# is already built into the wheel, and the same wheel is installed into a
+# JupyterLite build environment, where depending on `jupyterlab` would drag in
+# a server stack that has nothing to serve. scikit-learn is not a dependency
+# either — it belongs to the *kernel*, which is routinely a different Python
+# than the one this wheel is installed into, and is Pyodide in JupyterLite.
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/yanndebray/scikit-learner"
+Source = "https://github.com/yanndebray/scikit-learner"
+
+# The npm package is the single source of truth for the version, so
+# `scikit_learner_jupyter.__version__`, package.json and the wheel agree.
+[tool.hatch.version]
+source = "nodejs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scikit_learner_jupyter"]
+
+# What makes it a labextension once installed: JupyterLab discovers anything
+# under share/jupyter/labextensions, and `jupyter lite build` copies the same
+# directory into the static site with no extra configuration.
+[tool.hatch.build.targets.wheel.shared-data]
+"scikit_learner_jupyter/labextension" = "share/jupyter/labextensions/scikit-learner-jupyter"
+"install.json" = "share/jupyter/labextensions/scikit-learner-jupyter/install.json"
+
+[tool.hatch.build.targets.sdist]
+exclude = [".github", "lite/_output", "node_modules"]
+
+# Runs the npm build during `pip install` / `hatch build`, so a wheel built
+# from a clean checkout carries real JavaScript rather than an empty directory.
+[tool.hatch.build.hooks.jupyter-builder]
+dependencies = ["hatch-jupyter-builder>=0.9"]
+build-function = "hatch_jupyter_builder.npm_builder"
+ensured-targets = [
+    "scikit_learner_jupyter/labextension/static/style.js",
+    "scikit_learner_jupyter/labextension/package.json",
+]
+skip-if-exists = ["scikit_learner_jupyter/labextension/static/style.js"]
+
+[tool.hatch.build.hooks.jupyter-builder.build-kwargs]
+build_cmd = "build:prod"
+npm = ["npm"]
+
+[tool.hatch.build.hooks.jupyter-builder.editable-build-kwargs]
+build_cmd = "build"
+npm = ["npm"]
+source_dir = "src"
+build_dir = "scikit_learner_jupyter/labextension"

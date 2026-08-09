@@ -1,0 +1,459 @@
+/* ------------------------------------------------------------------ */
+/*  The side panel.                                                    */
+/*                                                                     */
+/*  A --jp-* port of what VS Code renders for free. There, four tree   */
+/*  views in a container give you row height, hover, selection,        */
+/*  twisties, checkboxes and a description column without writing any  */
+/*  CSS; an accordion section is a blank div, so all of it is here.    */
+/*                                                                     */
+/*  Everything is scoped under .sklearner-Panel and takes its colours  */
+/*  from the theme, so light, dark and any third-party JupyterLab      */
+/*  theme all render natively. The one literal is the brand orange —   */
+/*  it is the accent the VS Code build gets from its bundled "Probabl  */
+/*  Dark" colour theme, and no --jp-* variable carries it.             */
+/* ------------------------------------------------------------------ */
+
+.sklearner-Panel {
+  --sklearner-accent: #ff7900;
+  --sklearner-row-height: 24px;
+
+  color: var(--jp-ui-font-color1);
+  background: var(--jp-layout-color1);
+  font-size: var(--jp-ui-font-size1);
+}
+
+/* ------------------------------ the header ------------------------- */
+
+/* jp-SidePanel-header is styled for a one-word caption — uppercase, letter-
+   spaced, 600 weight, one line. What goes in ours is a sentence, sometimes a
+   whole explanation with a button after it, so all four are undone. The
+   border stays: it is what separates the header from the accordion. */
+.sklearner-Panel .jp-SidePanel-header {
+  display: block;
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.sklearner-Runtime {
+  min-height: 0;
+  flex: 0 0 auto;
+}
+
+.sklearner-Panel .runtime {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--jp-border-color2);
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.sklearner-Panel .runtime .what {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sklearner-Panel .runtime.ready .what {
+  color: var(--jp-ui-font-color1);
+}
+
+.sklearner-Panel .runtime .version {
+  font-family: var(--jp-code-font-family);
+  opacity: 0.8;
+}
+
+.sklearner-Panel .runtime.warn,
+.sklearner-Panel .runtime.error {
+  /* Wraps to as many lines as the message needs: these two carry the whole
+     explanation of why nothing is happening, and truncating that is how a
+     user ends up filing a bug instead of clicking the button next to it. */
+  align-items: flex-start;
+  white-space: normal;
+}
+
+.sklearner-Panel .runtime.error .what {
+  color: var(--jp-error-color1);
+}
+
+.sklearner-Panel .runtime .fix {
+  flex: 0 0 auto;
+  border: 1px solid var(--sklearner-accent);
+  background: transparent;
+  color: var(--sklearner-accent);
+  border-radius: 3px;
+  padding: 1px 8px;
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size0);
+  font-family: inherit;
+}
+
+.sklearner-Panel .runtime .fix:hover {
+  background: var(--sklearner-accent);
+  color: #fff;
+}
+
+/* ----------------------------- the sections ------------------------ */
+
+/* Each section is a child of the accordion's SplitPanel, so it gets an
+   absolute position, `contain: strict` and whatever height the accordion
+   hands it. That is a hard clip: MODELS lists 22 models and RUNS grows with
+   every fit, and without an explicit scroller the rows past the fold are not
+   just invisible, they are unreachable.
+
+   The scroll belongs on the body rather than the section, so a future
+   sticky element in the section stays put — and the section itself must not
+   scroll, or dragging the accordion handle would fight the scrollbar. */
+.sklearner-Section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sklearner-Section > .sklearner-Body {
+  flex: 1 1 auto;
+  /* Without this a flex child refuses to shrink below its content, which is
+     exactly the overflow we are trying to catch. */
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.sklearner-Panel .section {
+  padding: 2px 0 6px;
+}
+
+.sklearner-Panel .empty {
+  padding: 6px 12px 8px;
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.45;
+}
+
+.sklearner-Panel .empty code {
+  font-family: var(--jp-code-font-family);
+  font-size: 0.95em;
+}
+
+/* The `n / total` that a VS Code tree view shows next to its title. Lives in
+   the section toolbar, which the accordion renders into the header. */
+.sklearner-Count {
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  color: var(--jp-ui-font-color3);
+  font-size: var(--jp-ui-font-size0);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------- rows ------------------------------ */
+
+.sklearner-Panel .row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--sklearner-row-height);
+  padding: 0 8px 0 12px;
+  line-height: var(--sklearner-row-height);
+}
+
+.sklearner-Panel .row.clickable {
+  cursor: pointer;
+}
+
+.sklearner-Panel .row.clickable:hover,
+.sklearner-Panel .row.run:hover,
+.sklearner-Panel .row.model:hover {
+  background: var(--jp-layout-color2);
+}
+
+.sklearner-Panel .row .label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--jp-ui-font-color2);
+}
+
+.sklearner-Panel .row .label.strong {
+  color: var(--jp-ui-font-color1);
+  font-weight: 600;
+}
+
+.sklearner-Panel .row .value {
+  flex: 0 0 auto;
+  color: var(--jp-ui-font-color3);
+  font-size: var(--jp-ui-font-size0);
+  font-variant-numeric: tabular-nums;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sklearner-Panel .row.clickable:hover .value {
+  color: var(--jp-ui-font-color1);
+}
+
+.sklearner-Panel .row .value.dim {
+  opacity: 0.7;
+}
+
+.sklearner-Panel .glyph {
+  margin-right: 6px;
+  color: var(--jp-ui-font-color3);
+}
+
+.sklearner-Panel .glyph.accent {
+  color: var(--jp-brand-color1);
+}
+
+/* ------------------------------- dataset ---------------------------- */
+
+.sklearner-Panel .row.file-head {
+  padding-bottom: 2px;
+}
+
+.sklearner-Panel .row.file-row .label {
+  color: var(--jp-ui-font-color1);
+}
+
+/* -------------------------------- models ---------------------------- */
+
+.sklearner-Panel .row.category {
+  padding-left: 8px;
+}
+
+.sklearner-Panel .row.model {
+  padding-left: 30px;
+  cursor: pointer;
+}
+
+.sklearner-Panel .check {
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--jp-brand-color1);
+  cursor: pointer;
+}
+
+/* A twisty and its label are one hit target, the way a tree row is. Reset
+   the button chrome rather than using a div, so it stays keyboard-reachable
+   and announces itself. */
+.sklearner-Panel .twisty-label {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: var(--jp-ui-font-color1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sklearner-Panel .twisty {
+  display: inline-block;
+  width: 10px;
+  flex: 0 0 auto;
+  color: var(--jp-ui-font-color3);
+  transition: transform 100ms ease;
+}
+
+.sklearner-Panel .twisty.open {
+  transform: rotate(90deg);
+}
+
+/* --------------------------------- runs ----------------------------- */
+
+.sklearner-Panel .dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--jp-ui-font-color3);
+}
+
+.sklearner-Panel .dot.done {
+  background: var(--jp-success-color1, #2e7d32);
+}
+
+.sklearner-Panel .dot.done.current {
+  box-shadow: 0 0 0 2px var(--jp-brand-color1);
+}
+
+.sklearner-Panel .dot.failed {
+  background: var(--jp-error-color1);
+}
+
+.sklearner-Panel .dot.idle {
+  background: var(--jp-ui-font-color3);
+}
+
+.sklearner-Panel .dot.running,
+.sklearner-Panel .dot.queued {
+  background: var(--sklearner-accent);
+}
+
+.sklearner-Panel .dot.running {
+  animation: sklearner-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes sklearner-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.sklearner-Panel .row.run.selected {
+  background: var(--jp-layout-color2);
+  box-shadow: inset 2px 0 0 var(--jp-brand-color1);
+}
+
+.sklearner-Panel .row.run.status-failed .value {
+  color: var(--jp-error-color1);
+}
+
+.sklearner-Panel .inline-action {
+  flex: 0 0 auto;
+  border: 0;
+  background: none;
+  color: var(--jp-ui-font-color3);
+  cursor: pointer;
+  padding: 0 2px;
+  font: inherit;
+  /* Only on hover, like a VS Code tree row's inline action — a column of
+     download arrows down the whole list is louder than the list. */
+  visibility: hidden;
+}
+
+.sklearner-Panel .row.run:hover .inline-action {
+  visibility: visible;
+}
+
+.sklearner-Panel .inline-action:hover {
+  color: var(--jp-brand-color1);
+}
+
+.sklearner-Panel .detail {
+  padding: 2px 0 6px;
+  background: var(--jp-layout-color0);
+  border-left: 2px solid var(--jp-border-color2);
+  margin-left: 18px;
+}
+
+.sklearner-Panel .detail .row {
+  min-height: 20px;
+  line-height: 20px;
+  padding-left: 12px;
+  font-size: var(--jp-ui-font-size0);
+}
+
+.sklearner-Panel .detail .row .value {
+  font-family: var(--jp-code-font-family);
+}
+
+.sklearner-Panel .detail-head {
+  padding: 4px 12px 0;
+  font-size: var(--jp-ui-font-size0);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--jp-ui-font-color3);
+}
+
+/* ------------------------------ artifacts --------------------------- */
+
+.sklearner-Panel .row.artifact .label {
+  color: var(--jp-ui-font-color1);
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-ui-font-size0);
+}
+
+.sklearner-Panel .row.artifact::before {
+  content: '◦';
+  color: var(--jp-ui-font-color3);
+}
+
+.sklearner-Panel .row.artifact.code::before {
+  content: '⌨';
+}
+
+.sklearner-Panel .row.artifact.json::before {
+  content: '{ }';
+  font-size: 10px;
+}
+
+.sklearner-Panel .row.artifact.model::before {
+  content: '⬢';
+  color: var(--sklearner-accent);
+}
+
+/* ------------------------------ status bar -------------------------- */
+
+.sklearner-StatusItem {
+  display: flex;
+  align-items: center;
+}
+
+/* Every state this item can be in is clickable — ready goes to the kernel
+   picker, failed to the log, needs-packages to the install. React attaches
+   its handlers as properties rather than attributes, so there is no
+   [onclick] to select on and no state that should say otherwise. */
+.sklearner-Status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.sklearner-Status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--jp-ui-font-color3);
+}
+
+.sklearner-Status .dot.done {
+  background: var(--jp-success-color1, #2e7d32);
+}
+
+.sklearner-Status .dot.failed {
+  background: var(--jp-error-color1);
+}
+
+.sklearner-Status .dot.running {
+  background: var(--sklearner-accent);
+  animation: sklearner-pulse 1.1s ease-in-out infinite;
+}
+
+/* ------------------------------ the log ----------------------------- */
+
+.sklearner-LogDialog pre {
+  max-height: 50vh;
+  max-width: 78vw;
+  overflow: auto;
+  margin: 0;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  white-space: pre;
+  color: var(--jp-content-font-color1);
+}

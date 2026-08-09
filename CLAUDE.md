@@ -10,6 +10,21 @@ The `landing/` directory is a separate marketing page; the app proper is `fronte
 
 The repo also ships as a PyPI package (`pip install scikit-learner`). The `scikit_learner/` directory at the root is the Python distribution layer: a thin CLI (`scikit_learner.cli:main`) that serves the bundled frontend on localhost and opens the browser. The wheel `force-include`s `frontend/` as `scikit_learner/static/` so there's no duplicated source — see `pyproject.toml`.
 
+## Four shells, one ML layer
+
+`frontend/py/learner.py` is the product. Everything else is a shell around it, and **no shell owns a copy** — each pulls the file in at build time from `frontend/`:
+
+| | shell | how `learner.py` runs |
+|---|---|---|
+| `frontend/` | the web app | Pyodide in the page, via `pyodide-bridge.js` |
+| `scikit_learner/` | the PyPI CLI | serves `frontend/` on localhost; same Pyodide path |
+| `vscode-extension/` | VS Code | a subprocess, line-delimited JSON on stdio (`python/learner_server.py`) |
+| `jupyter-extension/` | JupyterLab + JupyterLite | the notebook kernel, JSON over IOPub (`python/learner_runner.py`) |
+
+The single-source rule is enforced three times over: the wheel `force-include`s it, `vscode-extension/scripts/sync-assets.mjs` copies it, and `jupyter-extension/scripts/gen-assets.mjs` codegens it into a TypeScript string. **A change to `learner.py` reaches all four; a fork in any of them is a bug.**
+
+The VS Code and Jupyter extensions are also deliberate ports of each other — same four sidebar sections, same commands, same session model, and the Jupyter plots tab runs `vscode-extension/webview/plots.js` verbatim in an iframe rather than reimplementing it. `jupyter-extension/README.md` has the full mapping table; when you change the UX of one, change the other or say in the commit why not.
+
 ## Running locally
 
 ```bash

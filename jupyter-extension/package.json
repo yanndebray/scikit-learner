@@ -1,0 +1,79 @@
+{
+  "name": "scikit-learner-jupyter",
+  "version": "0.1.0",
+  "description": "Train and compare scikit-learn models from a side panel, in JupyterLab and JupyterLite. The VS Code extension's UX, in Jupyter's shell.",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension",
+    "jupyterlite",
+    "scikit-learn",
+    "machine learning",
+    "csv"
+  ],
+  "homepage": "https://github.com/yanndebray/scikit-learner",
+  "bugs": {
+    "url": "https://github.com/yanndebray/scikit-learner/issues"
+  },
+  "license": "MIT",
+  "author": "probabl",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yanndebray/scikit-learner.git"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "style": "style/index.css",
+  "styleModule": "style/index.js",
+  "sideEffects": [
+    "style/*.css",
+    "style/index.js"
+  ],
+  "files": [
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
+    "schema/*.json"
+  ],
+  "scripts": {
+    "sync": "node scripts/gen-assets.mjs",
+    "build": "npm run build:lib && npm run build:labextension",
+    "build:lib": "npm run sync && tsc --sourceMap",
+    "build:labextension": "jupyter-builder build --development True .",
+    "build:prod": "npm run sync && tsc && jupyter-builder build .",
+    "typecheck": "npm run sync && tsc --noEmit",
+    "watch": "npm run sync && tsc -w --sourceMap",
+    "watch:labextension": "jupyter-builder watch .",
+    "clean": "rm -rf lib tsconfig.tsbuildinfo src/generated lite/files/airfoil.csv scikit_learner_jupyter/labextension lite/_output"
+  },
+  "dependencies": {
+    "@jupyterlab/application": "4.6.0",
+    "@jupyterlab/apputils": "4.7.0",
+    "@jupyterlab/coreutils": "6.6.0",
+    "@jupyterlab/docmanager": "4.6.0",
+    "@jupyterlab/filebrowser": "4.6.0",
+    "@jupyterlab/launcher": "4.6.0",
+    "@jupyterlab/services": "7.6.0",
+    "@jupyterlab/settingregistry": "4.6.0",
+    "@jupyterlab/statusbar": "4.6.0",
+    "@jupyterlab/ui-components": "4.6.0",
+    "@lumino/commands": "^2.3.3",
+    "@lumino/coreutils": "^2.0.0",
+    "@lumino/disposable": "^2.1.5",
+    "@lumino/signaling": "^2.0.0",
+    "@lumino/widgets": "^2.3.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@jupyter/builder": "^1.2.2",
+    "@jupyterlab/core-meta": "4.6.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "~5.5.4"
+  },
+  "jupyterlab": {
+    "extension": true,
+    "outputDir": "scikit_learner_jupyter/labextension",
+    "schemaDir": "schema"
+  }
+}

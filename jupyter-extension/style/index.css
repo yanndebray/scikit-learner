@@ -1,0 +1,8 @@
+/* The plain-CSS twin of index.js, for tools that read package.json's `style`
+   field rather than `styleModule`. @jupyter/builder prefers styleModule, so
+   this is not what the labextension build loads — but the field has to point
+   at something that exists, or a consumer resolving it gets a 404 and the
+   extension renders unstyled with nothing in the console to say why. */
+
+@import url('panel.css');
+@import url('plots.css');
