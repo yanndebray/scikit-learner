@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Scikit-Learner — Train ML models in your browser</title>
-<meta name="description" content="Train and compare 49 scikit-learn models — regression and classification — entirely in your browser. No signup, no server, no uploads. Powered by Pyodide." />
+<meta name="description" content="Train and compare 49 scikit-learn models — regression and classification — in your browser, in JupyterLab and JupyterLite, or in VS Code. No signup, no server, no uploads. Powered by Pyodide." />
 <link rel="icon" type="image/png" href="img/chart-increasing.png" />
 
 <meta property="og:title" content="Scikit-Learner — Train ML models in your browser" />
@@ -117,7 +117,8 @@
     border-radius: var(--radius);
     background: var(--bg);
   }
-  .card .icon {
+  .card .icon,
+  .surface .icon {
     width: 36px; height: 36px; border-radius: 10px;
     background: rgba(13,110,253,0.10); color: var(--accent);
     display: inline-flex; align-items: center; justify-content: center;
@@ -174,6 +175,30 @@
   .models-col li { padding: 0.3rem 0; border-bottom: 1px dashed var(--line); }
   .models-col li:last-child { border-bottom: 0; }
 
+  /* Editors */
+  section.editors {
+    padding: 3.5rem 0; background: var(--bg-soft);
+    margin-top: 3rem; border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  section.editors h2 {
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    margin: 0 0 0.5rem; letter-spacing: -0.01em;
+  }
+  section.editors p.sub { color: var(--muted); margin: 0 0 2rem; max-width: 640px; }
+  .surfaces { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .surface {
+    display: flex; flex-direction: column;
+    padding: 1.5rem; background: var(--bg);
+    border: 1px solid var(--line); border-radius: var(--radius);
+  }
+  .surface h3 { margin: 0 0 0.15rem; font-size: 1.1rem; font-weight: 600; }
+  .surface .where { color: var(--accent); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.7rem; }
+  .surface p { margin: 0 0 1.1rem; color: var(--muted); font-size: 0.95rem; }
+  /* Pins the link to the bottom so three cards of unequal prose still line up. */
+  .surface .go { margin-top: auto; font-weight: 600; font-size: 0.95rem; }
+  .surface.soon .where { color: var(--muted); }
+
   /* Final CTA */
   section.cta-final {
     padding: 4rem 0 5rem; text-align: center;
@@ -208,6 +233,7 @@
     <a href="#features">Features</a>
     <a href="#how">How it works</a>
     <a href="#models">Models</a>
+    <a href="#editors">Editors</a>
     <a href="https://github.com/yanndebray/scikit-learner" target="_blank" rel="noopener">GitHub</a>
   </div>
 </nav>
@@ -331,12 +357,62 @@
   </div>
 </section>
 
+<section class="editors" id="editors">
+  <div class="container">
+    <h2>Same workbench, three places</h2>
+    <p class="sub">
+      One <code>learner.py</code> runs behind all of them — as a page, as a Jupyter side panel,
+      as a VS Code sidebar. Pick the one you already have open.
+    </p>
+    <div class="surfaces">
+      <div class="surface">
+        <div class="icon" aria-hidden="true">🌐</div>
+        <h3>The web app</h3>
+        <div class="where">play.scikit-learner.app</div>
+        <p>A tab and nothing else. Pyodide loads scikit-learn into the page and your CSV never leaves the machine.</p>
+        <a class="go" href="https://play.scikit-learner.app">Open the app &nbsp;→</a>
+      </div>
+      <div class="surface">
+        <div class="icon" aria-hidden="true">📓</div>
+        <h3>JupyterLab &amp; JupyterLite</h3>
+        <div class="where">jupyter.scikit-learner.app</div>
+        <p>
+          A side panel next to your notebooks: dataset, models, runs, artifacts. Models are fitted
+          in the kernel — Pyodide in the browser, or your own Python in JupyterLab — and the
+          generated <code>pipeline.py</code> opens as a real file you can run.
+        </p>
+        <a class="go" href="https://jupyter.scikit-learner.app">Launch JupyterLite &nbsp;→</a>
+      </div>
+      <div class="surface">
+        <div class="icon" aria-hidden="true">🧩</div>
+        <h3>VS Code</h3>
+        <div class="where">Extension</div>
+        <p>
+          The same four sidebar sections and a plots editor, training against a local Python
+          environment the extension can set up for you.
+        </p>
+        <a class="go" href="https://github.com/yanndebray/scikit-learner/tree/main/vscode-extension">Get the extension &nbsp;→</a>
+      </div>
+    </div>
+
+    <div class="shot" style="margin-top: 2.5rem;">
+      <img src="img/jupyter.png" loading="lazy"
+           alt="Scikit-Learner running in JupyterLite: the left side panel lists the iris dataset, a scrollable model catalogue, six finished runs sorted best-first, and the exported artifacts; the main area shows a confusion matrix for Random Forest." />
+    </div>
+  </div>
+</section>
+
 <section class="cta-final container">
   <h2>Stop spinning up notebooks.</h2>
-  <p>Open a tab, train a model, ship the joblib.</p>
-  <a href="https://play.scikit-learner.app" class="btn btn-primary">
-    Play &nbsp;→
-  </a>
+  <p>Open a tab, train a model, ship the joblib — or bring the same panel into the notebook you already have.</p>
+  <div class="cta-row">
+    <a href="https://play.scikit-learner.app" class="btn btn-primary">
+      Play &nbsp;→
+    </a>
+    <a href="https://jupyter.scikit-learner.app" class="btn btn-ghost">
+      Open in Jupyter
+    </a>
+  </div>
 </section>
 
 <footer>

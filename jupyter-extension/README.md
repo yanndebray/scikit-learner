@@ -3,6 +3,29 @@
 Train and compare scikit-learn models from a side panel, in JupyterLab 4 and
 JupyterLite.
 
+**Try it with nothing installed: [jupyter.scikit-learner.app](https://jupyter.scikit-learner.app)**
+— a full JupyterLite, so the Python is Pyodide in your browser and no data
+leaves the machine.
+
+![Scikit-Learner in JupyterLite](../docs/jupyterlite.png)
+
+Six models fitted against iris in the browser, ranked best-first, with the
+confusion matrix for the winner. Everything in that screenshot is live: Pyodide
+booted, `piplite` fetched scikit-learn, and the models were actually trained.
+
+In JupyterLab the kernel is your own Python, and the generated `pipeline.py`
+opens as a real editor tab next to the plots:
+
+![Scikit-Learner in JupyterLab](../docs/jupyterlab.png)
+
+The panel on its own. Category rows carry the tri-state a tree view would give
+you for free, runs sort best-first as they land, and each finished run gets a
+`.joblib` in ARTIFACTS:
+
+<img src="../docs/panel.png" alt="The Scikit-Learner side panel" width="290">
+
+## Where it came from
+
 This is the third shell over one ML layer. The
 [web app](../frontend) runs `learner.py` in Pyodide; the
 [VS Code extension](../vscode-extension) execs it in a subprocess and talks

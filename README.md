@@ -57,13 +57,35 @@ Both are ports of each other rather than rewrites: same four sidebar sections
 (dataset, models, runs, artifacts), same commands, same session model, and the
 same `learner.py` — no shell keeps a copy of it.
 
+- **[`jupyter-extension/`](jupyter-extension)** — JupyterLab 4 and JupyterLite,
+  fitting models in the notebook kernel. Live at
+  **[jupyter.scikit-learner.app](https://jupyter.scikit-learner.app)** — that is
+  a full JupyterLite, so Python is Pyodide, there is no server, and nothing is
+  uploaded.
 - **[`vscode-extension/`](vscode-extension)** — a native VS Code sidebar plus a
   plots editor, fitting models in a local Python environment the extension can
   set up for you.
-- **[`jupyter-extension/`](jupyter-extension)** — the same panel for JupyterLab
-  4 and JupyterLite, fitting models in the notebook kernel. In JupyterLite that
-  kernel is Pyodide, so it runs with no server at all and nothing is uploaded;
-  the plots tab runs the VS Code extension's chart renderer verbatim.
+
+![Scikit-Learner in JupyterLite](docs/jupyterlite.png)
+
+Six models trained against the iris dataset in the browser, ranked best-first,
+with the confusion matrix for the winner. The plots tab is the VS Code
+extension's renderer running verbatim in an iframe — same file, different
+shell.
+
+In JupyterLab the kernel is your own Python instead of Pyodide, and the
+generated `pipeline.py` opens as a real editor tab you can run:
+
+![Scikit-Learner in JupyterLab](docs/jupyterlab.png)
+
+The panel itself, close up — the category checkboxes carry the tri-state you'd
+expect from a tree view, and runs sort best-first as they finish:
+
+<img src="docs/panel.png" alt="The Scikit-Learner side panel" width="290">
+
+The web app is unchanged and still the fastest way in:
+
+![The web app](landing/img/learner.png)
 
 ## Deploy
 
