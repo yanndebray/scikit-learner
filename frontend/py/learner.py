@@ -12,6 +12,7 @@ State lives in the module-level `current_data` dict, scoped to the page
 
 from __future__ import annotations
 
+import inspect
 import io
 import json
 import zipfile
@@ -110,6 +111,24 @@ AVAILABLE_MODELS = {
     "mlp_deep": {"name": "Deep Neural Network", "class": MLPRegressor, "params": {"hidden_layer_sizes": (100, 50, 25), "max_iter": 500, "random_state": 42}, "category": "Neural Network"},
 }
 
+# AdaBoostClassifier's `algorithm` parameter was deprecated in scikit-learn
+# 1.4 and removed in 1.6, where SAMME is the only algorithm there is. Passing
+# it to a modern sklearn raises TypeError before a single tree is fitted;
+# omitting it on an older one silently selects the deprecated SAMME.R, which
+# is a different model. Neither is acceptable, and neither can be decided at
+# authoring time: this module runs against Pyodide's sklearn in the browser,
+# whatever a notebook kernel has, and whatever a VS Code user's venv has.
+#
+# So ask the class rather than a version string — the signature is the thing
+# that actually decides whether the call succeeds. Resolved once at import,
+# so the catalogue, the tooltip and the generated pipeline.py all agree with
+# what was really fitted.
+_ADABOOST_ALGORITHM = (
+    {"algorithm": "SAMME"}
+    if "algorithm" in inspect.signature(AdaBoostClassifier).parameters
+    else {}
+)
+
 AVAILABLE_CLASSIFICATION_MODELS = {
     "logistic_regression": {"name": "Logistic Regression", "class": LogisticRegression, "params": {"max_iter": 1000, "random_state": 42}, "category": "Linear"},
     "logistic_l1": {"name": "Logistic Regression (L1)", "class": LogisticRegression, "params": {"penalty": "l1", "solver": "saga", "max_iter": 1000, "random_state": 42}, "category": "Linear"},
@@ -121,7 +140,7 @@ AVAILABLE_CLASSIFICATION_MODELS = {
     "random_forest_clf": {"name": "Random Forest", "class": RandomForestClassifier, "params": {"n_estimators": 100, "random_state": 42}, "category": "Ensemble"},
     "random_forest_clf_fine": {"name": "Fine Random Forest", "class": RandomForestClassifier, "params": {"n_estimators": 200, "max_depth": None, "min_samples_leaf": 1, "random_state": 42}, "category": "Ensemble"},
     "gradient_boosting_clf": {"name": "Gradient Boosting", "class": GradientBoostingClassifier, "params": {"n_estimators": 100, "random_state": 42}, "category": "Ensemble"},
-    "adaboost_clf": {"name": "AdaBoost", "class": AdaBoostClassifier, "params": {"n_estimators": 50, "random_state": 42, "algorithm": "SAMME"}, "category": "Ensemble"},
+    "adaboost_clf": {"name": "AdaBoost", "class": AdaBoostClassifier, "params": {"n_estimators": 50, "random_state": 42, **_ADABOOST_ALGORITHM}, "category": "Ensemble"},
     "extra_trees_clf": {"name": "Extra Trees", "class": ExtraTreesClassifier, "params": {"n_estimators": 100, "random_state": 42}, "category": "Ensemble"},
     "svc_linear": {"name": "Linear SVC", "class": SVC, "params": {"kernel": "linear", "C": 1.0, "probability": True, "random_state": 42}, "category": "SVM"},
     "svc_rbf": {"name": "RBF SVC", "class": SVC, "params": {"kernel": "rbf", "C": 1.0, "gamma": "scale", "probability": True, "random_state": 42}, "category": "SVM"},
