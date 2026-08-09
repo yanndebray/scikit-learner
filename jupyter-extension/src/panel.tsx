@@ -18,6 +18,7 @@ import * as React from 'react';
 
 import { listTables } from './contents.js';
 import { log } from './log.js';
+import { isJupyterLite } from './runtimeKind.js';
 import type { LearnerRuntime } from './runtime.js';
 import type { LearnerSession } from './session.js';
 import { ArtifactsBody, DatasetBody, ModelsBody, RunsBody, RuntimeHeader } from './ui/sections.js';
@@ -193,14 +194,19 @@ export class LearnerPanel extends SidePanel {
         onClick: () => ctx.execute(CommandIDs.trainSelected)
       })
     );
-    models.toolbar.addItem(
-      'train-all',
-      new ToolbarButton({
-        icon: refreshIcon,
-        tooltip: 'Train every model in the catalog',
-        onClick: () => ctx.execute(CommandIDs.trainAll)
-      })
-    );
+    /* Absent in JupyterLite, where fitting the whole catalogue would freeze
+       the tab — see runtimeKind.ts. Guarded on the same condition as the
+       command's registration so the button can never outlive it. */
+    if (!isJupyterLite()) {
+      models.toolbar.addItem(
+        'train-all',
+        new ToolbarButton({
+          icon: refreshIcon,
+          tooltip: 'Train every model in the catalog',
+          onClick: () => ctx.execute(CommandIDs.trainAll)
+        })
+      );
+    }
 
     /* ---- RUNS ---------------------------------------------------------- */
 

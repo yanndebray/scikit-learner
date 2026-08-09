@@ -69,7 +69,16 @@ Lab/Lite split here**. scikit-learn, pandas, scipy and joblib all exist as
 Pyodide wheels, so models are fitted in the kernel in both runtimes and your
 data never leaves the machine in either.
 
-The one difference is who installs the packages:
+There is one deliberate behavioural difference. **"Train all models" is absent
+in JupyterLite**, because Pyodide is single-threaded and on this tab's main
+thread: fitting the whole 22-model catalogue there stops the page responding
+for minutes with nothing to cancel. In JupyterLab the fitting happens in a
+kernel process, where it is merely slow. `src/runtimeKind.ts` decides, and both
+the toolbar button and the command registration are guarded on it — so in Lite
+the command palette does not offer it either. Ticking every model and pressing
+**Train selected** is still possible, exactly as it is in the web app.
+
+The other difference is who installs the packages:
 
 | | JupyterLab | JupyterLite |
 |---|---|---|

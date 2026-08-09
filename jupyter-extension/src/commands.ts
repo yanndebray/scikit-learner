@@ -6,6 +6,7 @@ import type { Contents } from '@jupyterlab/services';
 import { Widget } from '@lumino/widgets';
 
 import { bytesFromBase64 } from './kernel.js';
+import { isJupyterLite } from './runtimeKind.js';
 import { joinPath, listTables, parentOf, writeBase64, writeText } from './contents.js';
 import type { LearnerKernel } from './kernelSession.js';
 import { log } from './log.js';
@@ -278,10 +279,16 @@ export function registerCommands(deps: CommandDeps): void {
     await session.train([...session.selected]);
   });
 
-  add(CommandIDs.trainAll, 'Train all models', async () => {
-    deps.openPlots();
-    await session.train(session.catalog.map(model => model.key));
-  });
+  /* Not registered at all in JupyterLite — see runtimeKind.ts. Skipping the
+     registration rather than disabling the command takes the palette entry
+     with it, so there is no route to it that quietly does nothing. The panel
+     drops the matching toolbar button on the same condition. */
+  if (!isJupyterLite()) {
+    add(CommandIDs.trainAll, 'Train all models', async () => {
+      deps.openPlots();
+      await session.train(session.catalog.map(model => model.key));
+    });
+  }
 
   add(
     CommandIDs.selectRun,
