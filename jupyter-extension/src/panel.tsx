@@ -21,7 +21,14 @@ import { log } from './log.js';
 import { isJupyterLite } from './runtimeKind.js';
 import type { LearnerRuntime } from './runtime.js';
 import type { LearnerSession } from './session.js';
-import { ArtifactsBody, DatasetBody, ModelsBody, RunsBody, RuntimeHeader } from './ui/sections.js';
+import {
+  ArtifactsBody,
+  DatasetBody,
+  ModelsBody,
+  ReviewBody,
+  RunsBody,
+  RuntimeHeader
+} from './ui/sections.js';
 import { CommandIDs, PANEL_CLASS, PANEL_ID } from './types.js';
 import type { CommandID } from './types.js';
 import type { PanelContext } from './context.js';
@@ -149,6 +156,24 @@ export class LearnerPanel extends SidePanel {
     this.header.addWidget(header);
     this._runtimeHeader = header;
 
+    /* ---- REVIEW --------------------------------------------------------
+       First, and above DATASET on purpose: a finding here changes what the
+       numbers below it mean, so it has to be seen before them. */
+
+    const review = new Section({
+      label: 'Review',
+      className: 'sklearner-Review',
+      draw: () => <ReviewBody ctx={ctx} />
+    });
+    review.toolbar.addItem(
+      'count',
+      new Count(() => {
+        const { leak, decide } = session.gates.counts;
+        const actionable = leak + decide;
+        return actionable ? `${actionable}` : session.dataset ? '✓' : '';
+      })
+    );
+
     /* ---- DATASET ------------------------------------------------------- */
 
     const dataset = new Section({
@@ -241,7 +266,7 @@ export class LearnerPanel extends SidePanel {
       })
     );
 
-    this._sections = [dataset, models, runs, artifacts];
+    this._sections = [review, dataset, models, runs, artifacts];
     for (const section of this._sections) {
       this.addWidget(section);
     }

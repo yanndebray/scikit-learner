@@ -103,6 +103,7 @@ file is a snapshot, not a live view.
 import joblib
 import pandas as pd
 from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from ${mod} import ${cls}
 
@@ -115,16 +116,22 @@ target = ${pyLiteral(ds.target)}
 X = df[features].values
 y = df[target].values
 
-# -- pipeline (exactly what the extension ran) ---------------------------
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+# -- cross-validation (exactly what the extension ran) -------------------
+# The scaler lives INSIDE the pipeline so it is refitted on each training
+# fold. Scaling X once up front and cross-validating the scaled matrix is the
+# classic preprocessing leak: every fold's held-out rows would have shaped the
+# transform that scales them, and the score comes out flattering.
+pipe = make_pipeline(StandardScaler(), ${cls}(${params}))
 
-model = ${cls}(${params})
-
-scores = cross_val_score(model, X_scaled, y, cv=${ds.cvFolds}, scoring="${scoring}")
+scores = cross_val_score(pipe, X, y, cv=${ds.cvFolds}, scoring="${scoring}")
 print(f"cv ${scoring}: {scores.mean():.4f} \\u00b1 {scores.std():.4f}")
 
-model.fit(X_scaled, y)
+# -- the exported artifact -----------------------------------------------
+# One scaler and one model, both fitted on everything — which is what the
+# .joblib from the ARTIFACTS panel contains.
+model = ${cls}(${params})
+scaler = StandardScaler()
+model.fit(scaler.fit_transform(X), y)
 joblib.dump(
     {"model": model, "scaler": scaler, "features": features, "target": target},
     "${run.key}.joblib",

@@ -63,6 +63,7 @@ from sklearn.metrics import (
     roc_curve,
 )
 from sklearn.model_selection import cross_val_predict, cross_val_score
+from sklearn.pipeline import make_pipeline
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.preprocessing import StandardScaler, label_binarize
@@ -358,21 +359,37 @@ def train(
     X = df[features].values
     y = df[target].values
     mask = ~(np.isnan(X).any(axis=1) | (np.isnan(y) if y.dtype.kind == "f" else False))
+    n_dropped = int(len(X) - int(mask.sum()))
     X = X[mask]
     y = y[mask]
 
+    # The full fit, on everything. In-sample metrics and the exported artifact
+    # both come from here, and a scaler fitted on all the data is correct for
+    # a model that was also fitted on all the data.
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
     info = models_dict[model_type]
     model = info["class"](**info["params"])
 
+    # Cross-validation gets its own estimator, and it must be a Pipeline.
+    #
+    # Scaling X once up front and then handing the scaled matrix to
+    # cross_val_score is the classic preprocessing leak: the scaler has already
+    # seen every fold's held-out rows, so their own mean and variance went into
+    # the transform that scales them, and every reported score comes out
+    # optimistic. Inside a Pipeline the scaler is refitted on each training
+    # fold, which is the only arrangement that makes the number mean what the
+    # UI says it means. Passed the RAW X for the same reason.
+    def _cv_estimator():
+        return make_pipeline(StandardScaler(), info["class"](**info["params"]))
+
     current_data["model_counter"] += 1
     model_id = f"model_{current_data['model_counter']}"
 
     if is_classification:
-        cv_scores = cross_val_score(model, X_scaled, y, cv=cv_folds, scoring="accuracy")
-        cv_predictions = cross_val_predict(model, X_scaled, y, cv=cv_folds)
+        cv_scores = cross_val_score(_cv_estimator(), X, y, cv=cv_folds, scoring="accuracy")
+        cv_predictions = cross_val_predict(_cv_estimator(), X, y, cv=cv_folds)
         model.fit(X_scaled, y)
         predictions = model.predict(X_scaled)
 
@@ -443,12 +460,17 @@ def train(
             "n_samples": int(len(y)),
             "n_features": len(features),
             "n_classes": int(n_classes),
+            # Rows lost to the NaN mask above. Reported so a score can never
+            # silently describe a smaller dataset than the panel shows.
+            "n_dropped": n_dropped,
         }
 
     # regression
-    cv_scores_r2 = cross_val_score(model, X_scaled, y, cv=cv_folds, scoring="r2")
-    cv_scores_mse = -cross_val_score(model, X_scaled, y, cv=cv_folds, scoring="neg_mean_squared_error")
-    cv_predictions = cross_val_predict(model, X_scaled, y, cv=cv_folds)
+    cv_scores_r2 = cross_val_score(_cv_estimator(), X, y, cv=cv_folds, scoring="r2")
+    cv_scores_mse = -cross_val_score(
+        _cv_estimator(), X, y, cv=cv_folds, scoring="neg_mean_squared_error"
+    )
+    cv_predictions = cross_val_predict(_cv_estimator(), X, y, cv=cv_folds)
     model.fit(X_scaled, y)
     predictions = model.predict(X_scaled)
 
@@ -493,6 +515,7 @@ def train(
         },
         "n_samples": int(len(y)),
         "n_features": len(features),
+        "n_dropped": n_dropped,
     }
 
 
@@ -627,6 +650,216 @@ def comparison() -> dict:
         })
     rows.sort(key=lambda r: r["cv_r2"], reverse=True)
     return {"comparison": rows}
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  Methodology gates
+#
+#  Deterministic checks over the loaded frame and the chosen configuration.
+#  No model, no network, no heuristic beyond arithmetic — every finding here
+#  is reproducible and explainable, which is the whole point: a generic
+#  assistant guesses at these, and guessing is what produces a 0.99 that
+#  evaporates in production.
+#
+#  Three severities, and they behave differently:
+#    leak    something that makes a reported number wrong. Loud.
+#    decide  a modelling choice the app currently makes silently on the
+#            user's behalf. Offers options; the UI may block on it.
+#    note    a fit worth knowing about. Annotates, never blocks.
+#
+#  Inline rather than a gates.py module because all four shells exec this
+#  file as a single unit — the web app's Pyodide bridge, the PyPI CLI, the
+#  VS Code subprocess and the Jupyter kernel runner. A second file would
+#  mean teaching five loaders about it and buys nothing.
+#
+#  G-LEAK-SCALE is deliberately absent: the scaler-before-folds leak it
+#  described is fixed in train() itself, and a check that can only ever
+#  report "fine" is noise rather than rigor.
+# ══════════════════════════════════════════════════════════════════════
+
+#: Columns whose name alone says "not a feature". Matched case-insensitively
+#: against the whole name, so a legitimate `id_score` is not caught.
+_ID_NAMES = {"id", "index", "idx", "key", "uuid", "guid", "row", "rownum", "row_id",
+             "customer_id", "user_id", "record_id", "unnamed: 0"}
+
+#: Target names that read as deliberate rather than guessed.
+_TARGET_NAMES = {"target", "label", "y", "class", "outcome", "response"}
+
+
+def _gate(gate_id, severity, title, detail, **extra):
+    out = {"id": gate_id, "severity": severity, "title": title, "detail": detail}
+    out.update(extra)
+    return out
+
+
+def _looks_like_identifier(series) -> str | None:
+    """Why this column is an identifier rather than a feature, or None."""
+    name = str(series.name).strip().lower()
+    if name in _ID_NAMES:
+        return "its name"
+    n = len(series)
+    if n < 10:
+        return None
+    distinct = int(series.nunique(dropna=True))
+    if distinct == n and n > 20:
+        return f"every one of its {n} values is distinct"
+    # A strictly increasing integer column is a row number wearing a hat.
+    try:
+        if series.dtype.kind in "iu" and series.is_monotonic_increasing and distinct == n:
+            return "it increases by row"
+    except (AttributeError, TypeError):
+        pass
+    return None
+
+
+def run_gates(
+    features: list | None = None,
+    target: str | None = None,
+    task_type: str | None = None,
+    cv_folds: int = 5,
+) -> dict:
+    """Every check, against the currently loaded dataset. Never raises."""
+    df = current_data["df"]
+    if df is None:
+        return {"gates": [], "counts": {"leak": 0, "decide": 0, "note": 0}, "ready": False}
+
+    if hasattr(features, "to_py"):
+        features = list(features.to_py())
+    target = target or current_data.get("target")
+    task_type = task_type or current_data.get("task_type") or "regression"
+    numeric = current_data.get("numeric_columns") or []
+    if features is None:
+        features = [c for c in numeric if c != target]
+
+    gates: list[dict] = []
+
+    # ---- G-LEAK-ID — identifiers used as signal ----------------------
+    suspects = []
+    for column in features:
+        if column not in df.columns:
+            continue
+        why = _looks_like_identifier(df[column])
+        if why:
+            suspects.append({"column": column, "why": why})
+    if suspects:
+        names = ", ".join(s["column"] for s in suspects)
+        gates.append(_gate(
+            "G-LEAK-ID", "leak",
+            f"{len(suspects)} identifier-like column{'s' if len(suspects) > 1 else ''} in the features",
+            f"{names} — a model can memorise a row id and score well without learning anything. "
+            "Every reason is listed per column so you can overrule it.",
+            columns=suspects,
+            fix={"action": "drop_features", "features": [s["column"] for s in suspects]},
+        ))
+
+    # ---- G-DROPNA — rows that vanish before fitting -------------------
+    if target and target in df.columns:
+        used = [c for c in features if c in df.columns] + [target]
+        total = int(len(df))
+        complete = int(df[used].notna().all(axis=1).sum())
+        dropped = total - complete
+        if dropped:
+            pct = 100.0 * dropped / total if total else 0.0
+            gates.append(_gate(
+                "G-DROPNA", "leak" if pct >= 20 else "note",
+                f"{dropped} of {total} rows never reach the model",
+                f"Rows with a missing value in any selected column are dropped before fitting "
+                f"({pct:.1f}%). Scores describe the remaining {complete}. Dropping is only "
+                "harmless when the missingness is unrelated to the target.",
+                dropped=dropped, total=total, kept=complete,
+            ))
+
+    # ---- G-TARGET — the guess nobody confirmed ------------------------
+    if target and str(target).strip().lower() not in _TARGET_NAMES:
+        gates.append(_gate(
+            "G-TARGET", "decide",
+            f"Predicting {target} — is that right?",
+            "No column was named target, so the last numeric column was used. "
+            "Everything downstream depends on this being the thing you meant to predict.",
+            options=[{"key": c, "label": c, "recommended": c == target} for c in numeric[:12]],
+        ))
+
+    # ---- G-TASK — a class label read as a quantity --------------------
+    if target and target in df.columns and task_type == "regression":
+        column = df[target].dropna()
+        distinct = int(column.nunique())
+        integral = column.dtype.kind in "iub" or bool((column == column.round()).all()) if len(column) else False
+        if integral and 1 < distinct <= 20:
+            gates.append(_gate(
+                "G-TASK", "decide",
+                f"{target} has {distinct} whole-number values — regression or classification?",
+                "Fitting a regression to a class code optimises the distance between labels, "
+                "which is meaningless when the labels are names. R² will look plausible either way.",
+                options=[
+                    {"key": "classification", "label": f"Classification — {distinct} classes", "recommended": True},
+                    {"key": "regression", "label": "Regression — the values are genuinely ordered quantities"},
+                ],
+            ))
+
+    # ---- G-CV-SPLITTER — one fold count for every dataset -------------
+    if target and target in df.columns:
+        n = int(df[target].notna().sum())
+        if task_type == "classification":
+            counts = df[target].value_counts()
+            smallest = int(counts.min()) if len(counts) else 0
+            share = (100.0 * smallest / n) if n else 0.0
+            if smallest < cv_folds:
+                gates.append(_gate(
+                    "G-CV-SPLITTER", "decide",
+                    f"The rarest class has {smallest} rows, fewer than the {cv_folds} folds",
+                    "At least one fold will contain none of it, so the score for that class is "
+                    "undefined and the average silently absorbs it.",
+                    options=[
+                        {"key": str(max(2, smallest)), "label": f"{max(2, smallest)}-fold — every fold gets the rare class", "recommended": True},
+                        {"key": str(cv_folds), "label": f"Keep {cv_folds}-fold and accept the gap"},
+                    ],
+                ))
+            elif share < 20.0 and len(counts) > 1:
+                gates.append(_gate(
+                    "G-CV-SPLITTER", "note",
+                    f"Imbalanced target — the rarest class is {share:.1f}% of rows",
+                    "Accuracy rewards predicting the majority. The F1 column in the comparison "
+                    "table is the one to read here.",
+                ))
+        date_like = [c for c in df.columns
+                     if df[c].dtype.kind == "M"
+                     or any(k in str(c).lower() for k in ("date", "time", "timestamp", "year", "month"))]
+        if date_like:
+            gates.append(_gate(
+                "G-CV-TIME", "note",
+                f"{date_like[0]} looks like a time axis",
+                "Shuffled folds let the model train on the future and predict the past, so these "
+                "scores may flatter a model you intend to run forward in time. Scikit-Learner only "
+                "does shuffled k-fold — a time-ordered split means exporting the pipeline and "
+                "swapping in TimeSeriesSplit. Noted rather than asked, because the app cannot "
+                "currently offer you the other option.",
+                columns=[{"column": c, "why": "reads as a date"} for c in date_like[:5]],
+            ))
+
+    # ---- G-MODEL-FIT — hyperparameters the data cannot support --------
+    if target and target in df.columns:
+        n = int(df[target].notna().sum())
+        per_fold = int(n * (1 - 1 / max(cv_folds, 2)))
+        catalogue = AVAILABLE_CLASSIFICATION_MODELS if task_type == "classification" else AVAILABLE_MODELS
+        too_big = [
+            info["name"]
+            for info in catalogue.values()
+            if isinstance(info["params"].get("n_neighbors"), int)
+            and info["params"]["n_neighbors"] > per_fold
+        ]
+        if too_big:
+            gates.append(_gate(
+                "G-MODEL-FIT", "note",
+                f"{len(too_big)} model{'s' if len(too_big) > 1 else ''} ask for more neighbours than a fold has rows",
+                f"{', '.join(too_big)} — with {n} rows and {cv_folds} folds each fit sees about "
+                f"{per_fold}. These will fail or average over nearly the whole training set.",
+                models=too_big,
+            ))
+
+    counts = {"leak": 0, "decide": 0, "note": 0}
+    for gate in gates:
+        counts[gate["severity"]] += 1
+    return {"gates": gates, "counts": counts, "ready": True}
 
 
 def _ready() -> str:

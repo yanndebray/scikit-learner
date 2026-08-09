@@ -45,6 +45,11 @@ export const CommandIDs = {
   trainSelected: 'scikit-learner:train-selected',
   trainAll: 'scikit-learner:train-all',
   selectRun: 'scikit-learner:select-run',
+  /** Applies a gate's own suggested fix — currently only dropping the
+   *  identifier-like columns G-LEAK-ID found. */
+  applyGateFix: 'scikit-learner:apply-gate-fix',
+  /** Answers a `decide` gate by taking one of its options. */
+  answerGate: 'scikit-learner:answer-gate',
   exportRun: 'scikit-learner:export-run',
   openPipeline: 'scikit-learner:open-pipeline',
   openMetrics: 'scikit-learner:open-metrics',
@@ -89,6 +94,37 @@ export interface DatasetInfo {
   target: string | null;
   features: string[];
   cvFolds: number;
+}
+
+/* ---- methodology gates ---------------------------------------------- *
+ * Mirrors learner.py's run_gates(). `leak` means a reported number is
+ * wrong, `decide` is a modelling choice the app has been making silently,
+ * `note` is worth knowing and never blocks. */
+
+export type GateSeverity = 'leak' | 'decide' | 'note';
+
+export interface GateOption {
+  key: string;
+  label: string;
+  recommended?: boolean;
+}
+
+export interface Gate {
+  id: string;
+  severity: GateSeverity;
+  title: string;
+  detail: string;
+  columns?: { column: string; why: string }[];
+  options?: GateOption[];
+  /** Present when the gate can be resolved without asking anything. */
+  fix?: { action: string; features?: string[] };
+  models?: string[];
+}
+
+export interface GateReport {
+  gates: Gate[];
+  counts: Record<GateSeverity, number>;
+  ready: boolean;
 }
 
 export type RunStatus = 'queued' | 'running' | 'done' | 'failed';

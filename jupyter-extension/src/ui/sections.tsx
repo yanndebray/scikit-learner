@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { CommandIDs, rankMetric } from '../types.js';
-import type { CommandID, Run, RuntimeStatus } from '../types.js';
+import type { CommandID, GateSeverity, Run, RuntimeStatus } from '../types.js';
 import type { PanelContext } from '../context.js';
 
 /* ------------------------------------------------------------------ *
@@ -434,6 +434,137 @@ export function RuntimeHeader({ ctx }: { ctx: PanelContext }): JSX.Element | nul
     <div className="runtime busy">
       <span className="dot running" />
       <span className="what">{ctx.progressLine ?? status.message}</span>
+    </div>
+  );
+}
+
+/* ------------------------------- REVIEW --------------------------------- */
+
+/** Severity decides how loud a gate is, and whether it asks anything.
+ *  Ordered so the things that make a number wrong sort above the things that
+ *  are merely worth knowing. */
+const SEVERITY_RANK: Record<GateSeverity, number> = { leak: 0, decide: 1, note: 2 };
+
+const SEVERITY_LABEL: Record<GateSeverity, string> = {
+  leak: 'affects the numbers',
+  decide: 'your call',
+  note: 'worth knowing'
+};
+
+/** Which command answers a given gate's options. A gate with no mapping here
+ *  renders its options as prose rather than buttons — offering a button that
+ *  does nothing is worse than offering none. */
+const ANSWERS: Partial<Record<string, CommandID>> = {
+  'G-TARGET': CommandIDs.setTarget,
+  'G-TASK': CommandIDs.setTask,
+  'G-CV-SPLITTER': CommandIDs.setValidation
+};
+
+export function ReviewBody({ ctx }: { ctx: PanelContext }): JSX.Element {
+  const { session } = ctx;
+  const report = session.gates;
+
+  if (!session.dataset) {
+    return (
+      <div className="section">
+        <Empty>Load a dataset and the methodology checks run against it — no model involved.</Empty>
+      </div>
+    );
+  }
+  if (report.gates.length === 0) {
+    return (
+      <div className="section">
+        <div className="row clean">
+          <span className="dot done" />
+          <span className="label">Nothing to flag</span>
+        </div>
+        <Empty>
+          Identifiers, dropped rows, the target guess, the task type and the fold count all check
+          out for this dataset.
+        </Empty>
+      </div>
+    );
+  }
+
+  const gates = [...report.gates].sort(
+    (a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]
+  );
+
+  return (
+    <div className="section">
+      {gates.map(gate => {
+        const open = ctx.expanded.has(gate.id);
+        const answer = gate.options ? ANSWERS[gate.id] : undefined;
+        return (
+          <React.Fragment key={gate.id}>
+            <div className={`row gate sev-${gate.severity}`} title={gate.detail}>
+              <button
+                className="twisty-label"
+                onClick={() => {
+                  if (open) {
+                    ctx.expanded.delete(gate.id);
+                  } else {
+                    ctx.expanded.add(gate.id);
+                  }
+                  ctx.refresh();
+                }}
+              >
+                <span className={`twisty${open ? ' open' : ''}`}>▸</span>
+                <span className={`pip ${gate.severity}`} />
+                {gate.title}
+              </button>
+            </div>
+            {open && (
+              <div className="detail gate-detail">
+                <p className="gate-why">{gate.detail}</p>
+                <div className="gate-meta">
+                  <span className={`sev-tag ${gate.severity}`}>{SEVERITY_LABEL[gate.severity]}</span>
+                  <span className="gid">{gate.id}</span>
+                </div>
+                {gate.columns && gate.columns.length > 0 && (
+                  <div className="pills">
+                    {gate.columns.map(c => (
+                      <span className="pill" key={c.column} title={c.why}>
+                        {c.column}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {gate.fix && (
+                  <button
+                    className="gate-action primary"
+                    onClick={() => ctx.execute(CommandIDs.applyGateFix, { id: gate.id })}
+                  >
+                    Drop {gate.fix.features?.length ?? 0} column
+                    {(gate.fix.features?.length ?? 0) === 1 ? '' : 's'} from the features
+                  </button>
+                )}
+                {gate.options && answer && (
+                  <div className="gate-options">
+                    {gate.options.map(option => (
+                      <button
+                        key={option.key}
+                        className={`gate-action${option.recommended ? ' rec' : ''}`}
+                        onClick={() =>
+                          ctx.execute(CommandIDs.answerGate, { id: gate.id, key: option.key })
+                        }
+                      >
+                        {option.recommended && <span className="rec-tag">suggested</span>}
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {gate.options && !answer && (
+                  <p className="gate-why muted">
+                    {gate.options.map(o => o.label).join(' · ')}
+                  </p>
+                )}
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { rankMetric, UserError } from './types.js';
 import type {
   CatalogModel,
   DatasetInfo,
+  GateReport,
   LearnerSettingsSource,
   Run,
   TaskType
@@ -59,6 +60,10 @@ export class LearnerSession implements IDisposable {
   queue: string[] = [];
   /** First 1000 rows of each numeric column — feeds the scatter tab. */
   preview: { columns: string[]; data: Record<string, number[]> } | null = null;
+  /** What the methodology gates last said. Recomputed on every change that
+   *  could alter the answer — the dataset, the target, the features, the
+   *  task, the fold count. Cheap: it is arithmetic over a dataframe. */
+  gates: GateReport = { gates: [], counts: { leak: 0, decide: 0, note: 0 }, ready: false };
 
   /** One coarse event; renderers re-read the whole model. */
   readonly changed = new Signal<LearnerSession, void>(this);
@@ -148,6 +153,7 @@ export class LearnerSession implements IDisposable {
     this.selectedRunKey = null;
     await this._refreshCatalog();
     await this._refreshPreview();
+    await this.refreshGates();
     log.info(`dataset loaded: ${this.dataset.filename} (${this.dataset.rows} rows)`);
     this.fire();
   }
@@ -204,6 +210,27 @@ export class LearnerSession implements IDisposable {
     this.dataset.target = column;
     this.dataset.features = this.dataset.numericColumns.filter(c => c !== column);
     this.fire();
+    void this.refreshGates();
+  }
+
+  /** Re-run the deterministic checks. Never throws — a broken gate must not
+   *  be able to stop you training a model. */
+  async refreshGates(): Promise<void> {
+    const ds = this.dataset;
+    if (!ds) {
+      this.gates = { gates: [], counts: { leak: 0, decide: 0, note: 0 }, ready: false };
+      return;
+    }
+    try {
+      const report = (
+        await this.runtime.call('run_gates', [ds.features, ds.target, ds.taskType, ds.cvFolds])
+      ).result as GateReport;
+      this.gates = report;
+    } catch (err) {
+      log.warn(`run_gates failed: ${(err as Error).message}`);
+      this.gates = { gates: [], counts: { leak: 0, decide: 0, note: 0 }, ready: false };
+    }
+    this.fire();
   }
 
   async setTask(task: TaskType): Promise<void> {
@@ -213,6 +240,7 @@ export class LearnerSession implements IDisposable {
     this.dataset.taskType = task;
     await this._refreshCatalog();
     this.fire();
+    await this.refreshGates();
   }
 
   setCvFolds(folds: number): void {
@@ -221,6 +249,7 @@ export class LearnerSession implements IDisposable {
     }
     this.dataset.cvFolds = folds;
     this.fire();
+    void this.refreshGates();
   }
 
   setFeatures(features: string[]): void {
@@ -229,6 +258,7 @@ export class LearnerSession implements IDisposable {
     }
     this.dataset.features = features;
     this.fire();
+    void this.refreshGates();
   }
 
   toggleModel(key: string, on: boolean): void {

@@ -457,3 +457,152 @@
   white-space: pre;
   color: var(--jp-content-font-color1);
 }
+
+/* ------------------------------- review ----------------------------- */
+/* Severity is encoded twice on purpose — a coloured pip for the glance and
+   a word in the expanded detail for the read. Colour alone would leave the
+   difference between "wrong number" and "worth knowing" invisible to anyone
+   who cannot separate amber from red. */
+
+.sklearner-Panel .pip {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--jp-ui-font-color3);
+}
+
+.sklearner-Panel .pip.leak { background: var(--jp-error-color1); }
+.sklearner-Panel .pip.decide { background: var(--sklearner-accent); }
+.sklearner-Panel .pip.note { background: var(--jp-info-color1, #2196f3); }
+
+.sklearner-Panel .row.gate {
+  align-items: flex-start;
+  padding-left: 8px;
+}
+
+.sklearner-Panel .row.gate .twisty-label {
+  align-items: flex-start;
+  white-space: normal;
+  line-height: 1.4;
+  padding: 3px 0;
+}
+
+.sklearner-Panel .row.clean .label {
+  color: var(--jp-ui-font-color1);
+}
+
+.sklearner-Panel .gate-detail {
+  padding: 6px 12px 10px 20px;
+}
+
+.sklearner-Panel .gate-why {
+  margin: 0 0 8px;
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.5;
+  color: var(--jp-ui-font-color2);
+}
+
+.sklearner-Panel .gate-why.muted {
+  opacity: 0.85;
+  font-style: italic;
+}
+
+.sklearner-Panel .gate-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.sklearner-Panel .sev-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.sklearner-Panel .sev-tag.leak {
+  background: var(--jp-error-color3, #ffcdd2);
+  color: var(--jp-error-color1);
+}
+
+.sklearner-Panel .sev-tag.decide {
+  background: transparent;
+  border: 1px solid var(--sklearner-accent);
+  color: var(--sklearner-accent);
+}
+
+.sklearner-Panel .sev-tag.note {
+  background: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color2);
+}
+
+.sklearner-Panel .gid {
+  font-family: var(--jp-code-font-family);
+  font-size: 9.5px;
+  color: var(--jp-ui-font-color3);
+}
+
+.sklearner-Panel .pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.sklearner-Panel .pill {
+  font-family: var(--jp-code-font-family);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color2);
+  border: 1px solid var(--jp-border-color2);
+}
+
+.sklearner-Panel .gate-options {
+  display: grid;
+  gap: 5px;
+}
+
+.sklearner-Panel .gate-action {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.4;
+  padding: 6px 9px;
+  border-radius: 4px;
+  border: 1px solid var(--jp-border-color1);
+  background: var(--jp-layout-color1);
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+}
+
+.sklearner-Panel .gate-action:hover {
+  border-color: var(--sklearner-accent);
+}
+
+.sklearner-Panel .gate-action.rec {
+  border-color: var(--sklearner-accent);
+}
+
+.sklearner-Panel .gate-action.primary {
+  border-color: var(--sklearner-accent);
+  color: var(--sklearner-accent);
+  font-weight: 600;
+}
+
+.sklearner-Panel .rec-tag {
+  display: block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sklearner-accent);
+  margin-bottom: 1px;
+}

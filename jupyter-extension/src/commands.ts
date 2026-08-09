@@ -300,6 +300,56 @@ export function registerCommands(deps: CommandDeps): void {
     { inPalette: false }
   );
 
+  /* ---- gates ------------------------------------------------------------ */
+
+  add(
+    CommandIDs.applyGateFix,
+    'Apply a review fix',
+    async args => {
+      const gate = session.gates.gates.find(g => g.id === args.id);
+      const drop = gate?.fix?.features ?? [];
+      const ds = session.dataset;
+      if (!ds || drop.length === 0) {
+        throw new UserError('That finding has no automatic fix.');
+      }
+      const kept = ds.features.filter(f => !drop.includes(f));
+      if (kept.length === 0) {
+        throw new UserError('Dropping those would leave no features at all.');
+      }
+      session.setFeatures(kept);
+      Notification.success(
+        `Scikit-Learner: dropped ${drop.join(', ')} from the features.`,
+        { autoClose: 5000 }
+      );
+    },
+    { inPalette: false }
+  );
+
+  add(
+    CommandIDs.answerGate,
+    'Answer a review question',
+    async args => {
+      const id = String(args.id ?? '');
+      const key = String(args.key ?? '');
+      if (!key) {
+        return;
+      }
+      /* Each decide-gate answers by driving the setting the panel already
+         exposes, so the answer is indistinguishable from having clicked the
+         row in DATASET — and just as reversible. */
+      if (id === 'G-TARGET') {
+        session.setTarget(key);
+      } else if (id === 'G-TASK') {
+        await session.setTask(key as TaskType);
+      } else if (id === 'G-CV-SPLITTER') {
+        session.setCvFolds(parseInt(key, 10));
+      } else {
+        throw new UserError(`No action is wired for ${id}.`);
+      }
+    },
+    { inPalette: false }
+  );
+
   /* ---- artifacts ------------------------------------------------------- */
 
   add(CommandIDs.exportRun, 'Export model (joblib)', async args => {
