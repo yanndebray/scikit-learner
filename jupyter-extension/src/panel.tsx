@@ -62,6 +62,11 @@ export const learnerIcon = LabIcon.resolve({
 class Body extends ReactWidget {
   constructor(private readonly _draw: () => JSX.Element) {
     super();
+    /* Named so the stylesheet can give it the scrollbar. A section is a
+       split-panel child with `contain: strict` and a height the accordion
+       decides, so without an overflow rule on this node its content is
+       silently clipped rather than scrolled. */
+    this.addClass('sklearner-Body');
   }
 
   protected render(): JSX.Element {

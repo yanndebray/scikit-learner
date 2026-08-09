@@ -101,8 +101,29 @@
 
 /* ----------------------------- the sections ------------------------ */
 
+/* Each section is a child of the accordion's SplitPanel, so it gets an
+   absolute position, `contain: strict` and whatever height the accordion
+   hands it. That is a hard clip: MODELS lists 22 models and RUNS grows with
+   every fit, and without an explicit scroller the rows past the fold are not
+   just invisible, they are unreachable.
+
+   The scroll belongs on the body rather than the section, so a future
+   sticky element in the section stays put — and the section itself must not
+   scroll, or dragging the accordion handle would fight the scrollbar. */
 .sklearner-Section {
+  display: flex;
+  flex-direction: column;
   min-height: 0;
+  overflow: hidden;
+}
+
+.sklearner-Section > .sklearner-Body {
+  flex: 1 1 auto;
+  /* Without this a flex child refuses to shrink below its content, which is
+     exactly the overflow we are trying to catch. */
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .sklearner-Panel .section {
