@@ -1,8 +1,8 @@
 {
   "name": "scikit-learner",
-  "displayName": "Scikit-Learner — train and compare ML models visually",
+  "displayName": "Scikit-Learner \u2014 train and compare ML models visually",
   "description": "Native VS Code ML workbench on scikit-learn. Pick a CSV or sample dataset in the sidebar, train 20+ models, compare runs, read the generated sklearn pipeline, export the best model. Runs against a local Python environment.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "publisher": "probabl",
   "license": "MIT",
   "private": true,
@@ -75,34 +75,34 @@
       },
       {
         "command": "scikit-learner.chooseDataset",
-        "title": "Choose dataset…",
+        "title": "Choose dataset\u2026",
         "category": "Scikit-Learner",
         "icon": "$(add)"
       },
       {
         "command": "scikit-learner.loadSample",
-        "title": "Load a sample dataset…",
+        "title": "Load a sample dataset\u2026",
         "category": "Scikit-Learner",
         "icon": "$(database)"
       },
       {
         "command": "scikit-learner.setTarget",
-        "title": "Set target column…",
+        "title": "Set target column\u2026",
         "category": "Scikit-Learner"
       },
       {
         "command": "scikit-learner.selectFeatures",
-        "title": "Select feature columns…",
+        "title": "Select feature columns\u2026",
         "category": "Scikit-Learner"
       },
       {
         "command": "scikit-learner.setTask",
-        "title": "Set task type…",
+        "title": "Set task type\u2026",
         "category": "Scikit-Learner"
       },
       {
         "command": "scikit-learner.setValidation",
-        "title": "Set cross-validation folds…",
+        "title": "Set cross-validation folds\u2026",
         "category": "Scikit-Learner"
       },
       {
@@ -145,7 +145,7 @@
       },
       {
         "command": "scikit-learner.selectInterpreter",
-        "title": "Select Python interpreter…",
+        "title": "Select Python interpreter\u2026",
         "category": "Scikit-Learner"
       },
       {
