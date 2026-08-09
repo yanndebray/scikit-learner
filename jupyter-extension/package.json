@@ -1,6 +1,6 @@
 {
   "name": "scikit-learner-jupyter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Train and compare scikit-learn models from a side panel, in JupyterLab and JupyterLite. The VS Code extension's UX, in Jupyter's shell.",
   "keywords": [
     "jupyter",
