@@ -495,6 +495,7 @@ def train(
         "n_features": len(features),
     }
 
+
 def get_model(model_id: str) -> dict:
     if model_id not in current_data["models"]:
         raise ValueError("Model not found")
