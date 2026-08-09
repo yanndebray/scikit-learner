@@ -1,5 +1,8 @@
 node_modules/
 lib/
+# Release artifacts live on the GitHub release, not in git — the same rule
+# vscode-extension/*.vsix and the root dist/ already follow.
+dist/
 tsconfig.tsbuildinfo
 scikit_learner_jupyter/labextension/
 *.egg-info/
