@@ -1,0 +1,35 @@
+{
+  "title": "Scikit-Learner",
+  "description": "Train and compare scikit-learn models from the side panel.",
+  "jupyter.lab.setting-icon-label": "Scikit-Learner",
+  "type": "object",
+  "properties": {
+    "kernelName": {
+      "title": "Kernel",
+      "description": "Kernelspec name for Scikit-Learner's own session, for example `python3`. Leave empty to use the default. The models are fitted in this kernel, so it is the environment that needs scikit-learn — in JupyterLite that is Pyodide, and the packages are fetched into the browser on first use.",
+      "type": "string",
+      "default": ""
+    },
+    "autoInstall": {
+      "title": "Install missing packages automatically",
+      "description": "Install scikit-learn, pandas and their dependencies into the kernel without asking. Off by default in JupyterLab, where the kernel is your own environment and installing into it is your decision. JupyterLite's Pyodide kernel is per-tab and disposable, so this is switched on there regardless.",
+      "type": "boolean",
+      "default": false
+    },
+    "cvFolds": {
+      "title": "Cross-validation folds",
+      "description": "Folds a freshly loaded dataset starts on. Changeable per dataset from the DATASET section.",
+      "type": "number",
+      "minimum": 2,
+      "maximum": 20,
+      "default": 5
+    },
+    "outputDir": {
+      "title": "Output directory",
+      "description": "Where the generated `pipeline.py`, `metrics.json` and exported `.joblib` files are written, relative to the file browser root. Leave empty to write them next to the dataset. Unlike the VS Code extension, which serves these from a virtual document provider, they are real files here so the file browser can see them and JupyterLite can download them.",
+      "type": "string",
+      "default": "scikit-learner"
+    }
+  },
+  "additionalProperties": false
+}

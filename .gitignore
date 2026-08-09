@@ -1,4 +1,6 @@
 .venv/
+# The JupyterLab/JupyterLite build environment — see jupyter-extension/README.md
+.venv-jupyter/
 .claude/
 *.pyc
 __pycache__/

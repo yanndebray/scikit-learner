@@ -1,0 +1,5 @@
+{
+  "packageManager": "python",
+  "packageName": "scikit_learner_jupyter",
+  "uninstallInstructions": "Use pip to uninstall scikit_learner_jupyter"
+}
