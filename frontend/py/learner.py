@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import inspect
 import io
+import re
 import json
 import zipfile
 from datetime import datetime
@@ -700,6 +701,15 @@ def _looks_like_identifier(series) -> str | None:
     n = len(series)
     if n < 10:
         return None
+
+    # Uniqueness only means "identifier" for integers and strings. A float
+    # column of measurements is all-distinct almost by definition — CRIM, NOX
+    # and RM in Boston Housing are 506 distinct floats and every one of them
+    # is a real feature. Applying the rule to floats flagged nine of Boston's
+    # thirteen columns as leaks, which is how a check earns being ignored.
+    if series.dtype.kind == "f":
+        return None
+
     distinct = int(series.nunique(dropna=True))
     if distinct == n and n > 20:
         return f"every one of its {n} values is distinct"
@@ -709,6 +719,37 @@ def _looks_like_identifier(series) -> str | None:
             return "it increases by row"
     except (AttributeError, TypeError):
         pass
+    return None
+
+
+#: Name tokens that mean "this column is a point in time". Matched as whole
+#: tokens, never as substrings: `month` inside `tenure_months` is a duration
+#: and `monthly_charges` is a rate, and treating either as a time axis is the
+#: kind of false positive that gets a whole check muted.
+_TIME_TOKENS = {"date", "dates", "time", "times", "datetime", "timestamp",
+                "day", "week", "month", "year", "quarter", "created", "updated"}
+
+
+def _looks_like_time(series) -> str | None:
+    """Why this column is a point in time, or None."""
+    if series.dtype.kind == "M":
+        return "stored as a datetime"
+
+    tokens = {t for t in re.split(r"[^a-z0-9]+", str(series.name).lower()) if t}
+    if tokens & _TIME_TOKENS:
+        return "its name"
+
+    # A CSV has no dtypes, so a real date column arrives as text. Ask pandas
+    # whether it parses, on a sample — cheap, and independent of the name.
+    if series.dtype == object:
+        sample = series.dropna().head(50)
+        if len(sample) >= 10:
+            try:
+                parsed = pd.to_datetime(sample, errors="coerce", format="mixed")
+                if parsed.notna().mean() >= 0.9:
+                    return "its values parse as dates"
+            except (ValueError, TypeError):
+                pass
     return None
 
 
@@ -814,26 +855,31 @@ def run_gates(
                         {"key": str(cv_folds), "label": f"Keep {cv_folds}-fold and accept the gap"},
                     ],
                 ))
-            elif share < 20.0 and len(counts) > 1:
-                gates.append(_gate(
-                    "G-CV-SPLITTER", "note",
-                    f"Imbalanced target — the rarest class is {share:.1f}% of rows",
-                    "Accuracy rewards predicting the majority. The F1 column in the comparison "
-                    "table is the one to read here.",
-                ))
-        date_like = [c for c in df.columns
-                     if df[c].dtype.kind == "M"
-                     or any(k in str(c).lower() for k in ("date", "time", "timestamp", "year", "month"))]
+            elif len(counts) > 1:
+                # Relative to balance, not an absolute percentage. Ten balanced
+                # classes put every one of them at 10%, and an absolute "under
+                # 20% is imbalanced" rule called MNIST-style digits imbalanced
+                # — which is exactly backwards.
+                fair = n / len(counts)
+                if smallest < 0.5 * fair:
+                    gates.append(_gate(
+                        "G-CV-SPLITTER", "note",
+                        f"Imbalanced target — the rarest class is {share:.1f}% of rows, "
+                        f"where an even split would be {100 / len(counts):.1f}%",
+                        "Accuracy rewards predicting the majority. The F1 column in the "
+                        "comparison table is the one to read here.",
+                    ))
+        date_like = [(c, why) for c in df.columns if (why := _looks_like_time(df[c]))]
         if date_like:
             gates.append(_gate(
                 "G-CV-TIME", "note",
-                f"{date_like[0]} looks like a time axis",
+                f"{date_like[0][0]} looks like a time axis",
                 "Shuffled folds let the model train on the future and predict the past, so these "
                 "scores may flatter a model you intend to run forward in time. Scikit-Learner only "
                 "does shuffled k-fold — a time-ordered split means exporting the pipeline and "
                 "swapping in TimeSeriesSplit. Noted rather than asked, because the app cannot "
                 "currently offer you the other option.",
-                columns=[{"column": c, "why": "reads as a date"} for c in date_like[:5]],
+                columns=[{"column": c, "why": why} for c, why in date_like[:5]],
             ))
 
     # ---- G-MODEL-FIT — hyperparameters the data cannot support --------
