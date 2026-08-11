@@ -2,8 +2,8 @@ import * as vscode from "vscode";
 import type { Session } from "./session";
 
 /* ------------------------------------------------------------------ */
-/*  Status bar (design 1a/1b): environment on the right, training      */
-/*  progress while a queue is running, best run when idle.             */
+/*  Status bar: environment on the right, training progress while a     */
+/*  queue is running, best run when idle.                              */
 /* ------------------------------------------------------------------ */
 
 export function registerStatusBar(session: Session): vscode.Disposable {

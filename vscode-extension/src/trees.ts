@@ -5,7 +5,7 @@ import type { Run, Session } from "./session";
 /* ------------------------------------------------------------------ */
 /*  The sidebar: DATASET / MODELS / RUNS / ARTIFACTS.                  */
 /*                                                                     */
-/*  Four small tree views in one container (design 1a–1c). All of      */
+/*  Four small tree views in one container. All of                     */
 /*  them render the Session and nothing else; interaction goes back    */
 /*  through commands so the palette can drive everything the mouse     */
 /*  can.                                                               */

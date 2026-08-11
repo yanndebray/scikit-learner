@@ -44,7 +44,7 @@ html, body {
 }
 .banner.error { color: var(--vscode-errorForeground); }
 
-/* ---- empty state (design 1c) --------------------------------------- */
+/* ---- empty state -------------------------------------------------- */
 
 .empty {
   flex: 1;
@@ -100,7 +100,7 @@ html, body {
 }
 .btn.outline:hover { background: var(--vscode-button-secondaryHoverBackground, transparent); }
 
-/* ---- main layout (design 1a) ---------------------------------------- */
+/* ---- main layout --------------------------------------------------- */
 
 .center { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; }
 
@@ -190,7 +190,7 @@ html, body {
   font-size: 14px;
 }
 
-/* ---- comparison table (design 1b) ------------------------------------ */
+/* ---- comparison table ----------------------------------------------- */
 
 .compare { padding: 0; width: 100%; border-collapse: collapse; font-size: 13px; }
 .compare th {

@@ -1,5 +1,5 @@
 /**
- * plots.js — the Scikit-Learner plots editor (design 1a–1c).
+ * plots.js — the Scikit-Learner plots editor.
  *
  * A pure renderer: the extension host pushes the session snapshot, this file
  * draws it. Charts are hand-rolled SVG colored from the active VS Code

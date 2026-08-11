@@ -1,6 +1,6 @@
 # Scikit-Learner for VS Code
 
-A native VS Code ML workbench on scikit-learn, [designed in claude.ai/design](https://claude.ai/design/p/160558bd-668c-495e-bc0e-0954f843bbe8) with the Probabl design system (see issue #17): pick a CSV or sample dataset in the sidebar, train 20+ models, compare runs, read the generated sklearn pipeline, export the best model as joblib.
+A native VS Code ML workbench on scikit-learn, built on the Probabl design system (see issue #17): pick a CSV or sample dataset in the sidebar, train 20+ models, compare runs, read the generated sklearn pipeline, export the best model as joblib.
 
 Everything runs in a **local Python environment** — real CPython, your machine's full speed and memory, nothing sent anywhere.
 
