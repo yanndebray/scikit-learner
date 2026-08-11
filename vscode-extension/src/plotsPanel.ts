@@ -6,7 +6,7 @@ import { log } from "./util/log";
 /* ------------------------------------------------------------------ */
 /*  The plots editor.                                                  */
 /*                                                                     */
-/*  Design 1a: the editor tab is only plots (+ the run inspector       */
+/*  The editor tab is only plots (+ the run inspector                  */
 /*  column). Everything else — dataset, models, runs, artifacts —      */
 /*  lives in the sidebar trees. The webview is a pure renderer: the    */
 /*  host pushes the full session snapshot on every change, and the     */
