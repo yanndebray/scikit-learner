@@ -99,14 +99,27 @@ scikit-learn get fetched.
 
 ## Install
 
+**Not on PyPI yet**, so there is no `pip install scikit_learner_jupyter`. Take
+the wheel from a [release](https://github.com/yanndebray/scikit-learner/releases):
+
 ```bash
-pip install scikit_learner_jupyter
+pip install scikit_learner_jupyter-<version>-py3-none-any.whl
 ```
 
-For JupyterLite, install it into the environment you run `jupyter lite build`
-in; the `federated_extensions` addon finds it under
+Or build it from this directory — see [Develop](#develop) below for the
+toolchain, then:
+
+```bash
+hatch build -t wheel        # -> dist/scikit_learner_jupyter-*.whl
+```
+
+For JupyterLite, install the wheel into the environment you run
+`jupyter lite build` in; the `federated_extensions` addon finds it under
 `share/jupyter/labextensions` and copies it into the site with no extra
 configuration.
+
+Or skip installing altogether and use the hosted build at
+<https://jupyter.scikit-learner.app>.
 
 ## Settings
 
