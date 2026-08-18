@@ -260,15 +260,42 @@ extensions.
 ### JupyterLite
 
 ```bash
-cd lite
-jupyter lite build --output-dir _output --contents files
-jupyter lite serve --output-dir _output --port 8903
+npm run build:lite     # jupyter lite build, then scripts/brand-lite.mjs
+npm run serve:lite     # http://localhost:8903
 ```
+
+Use the npm scripts rather than `jupyter lite build` directly: the build alone
+leaves the site wearing Jupyter's favicons, and `brand-lite.mjs` is the second
+half.
 
 `lite/jupyter-lite.json` sets the app name and switches `autoInstall` on. The
 extension needs no other Lite-specific configuration — it is discovered from
 the venv. `lite/files/airfoil.csv` is copied there by `gen-assets.mjs` so the
 file browser has something to open.
+
+#### Branding
+
+The demo site is the extension's shop window, so it wears the scikit-learn
+spark rather than the JupyterLite default. `scripts/brand-lite.mjs` replaces
+the per-app `favicon.ico`, everything under `static/favicons/`, the two
+webmanifest PNGs and the manifest's name fields, from the committed assets in
+`lite/branding/`.
+
+Two things about it are worth knowing before changing any of it, both
+explained at length at the top of the script:
+
+- **`faviconUrl` in `jupyter-lite.json` is not sufficient.** Each app overrides
+  it with its own, and Notebook 7's `tab-icon` plugin rewrites the icon from
+  `static/favicons/` on every kernel status change, so a page under
+  `/notebooks/` would revert to the Jupyter icon as soon as you ran a cell.
+- **`lite/jupyter_lite_config.json` disables the `icons` addon.** That addon
+  copies jupyter_server's favicons into `static/favicons/` on every build, and
+  `jupyter lite serve` re-runs the build — so with it enabled the stock icons
+  came back the moment the site was served. With it off, `brand-lite.mjs` owns
+  that directory.
+
+The kernel-busy favicon is a separate grey rendering of the spark, so the
+notebook tab still shows when a kernel is working.
 
 ## Layout
 
@@ -286,3 +313,5 @@ file browser has something to open.
 | `src/pipeline.ts` | `pipeline.py` and `metrics.json` generation |
 | `python/learner_runner.py` | the kernel-side half |
 | `scripts/gen-assets.mjs` | everything this package ships but does not own |
+| `scripts/brand-lite.mjs` | puts the spark on the JupyterLite demo site, post-build |
+| `lite/branding/` | the rasterised spark: favicons and webmanifest PNGs |

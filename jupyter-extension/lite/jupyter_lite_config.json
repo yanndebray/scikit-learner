@@ -1,0 +1,6 @@
+{
+  "LiteBuildConfig": {
+    "_comment": "The `icons` addon copies jupyter_server's favicons into _output/static/favicons on every build — and `jupyter lite serve` re-runs the build, so it would undo scripts/brand-lite.mjs the moment the site is served. Disabling it makes brand-lite the only writer of that directory; nothing else in jupyterlite-core reads it.",
+    "disable_addons": ["icons"]
+  }
+}
