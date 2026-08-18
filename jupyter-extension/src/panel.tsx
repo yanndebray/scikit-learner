@@ -26,7 +26,7 @@ import { CommandIDs, PANEL_CLASS, PANEL_ID } from './types.js';
 import type { CommandID } from './types.js';
 import type { PanelContext } from './context.js';
 
-import flaskSvgstr from '../style/icons/flask.svg';
+import sparkSvgstr from '../style/icons/spark.svg';
 
 /* ------------------------------------------------------------------ *
  *  The side panel.                                                    *
@@ -52,9 +52,13 @@ import flaskSvgstr from '../style/icons/flask.svg';
  * ------------------------------------------------------------------ */
 
 /** Registered once and shared with the plots tab, so both read as the same
- *  product. Same glyph as the VS Code activity-bar icon. */
+ *  product. Same file as the VS Code activity-bar icon — the scikit-learn
+ *  spark. Note the two front ends do not render it the same way: JupyterLab
+ *  inlines the SVG, so the cyan and orange survive here, while VS Code turns
+ *  a container icon into a CSS mask and paints the silhouette in the theme's
+ *  activity-bar foreground. Nothing to fix — the shape is what carries. */
 export const learnerIcon = LabIcon.resolve({
-  icon: { name: 'scikit-learner:flask', svgstr: flaskSvgstr }
+  icon: { name: 'scikit-learner:spark', svgstr: sparkSvgstr }
 });
 
 /** A ReactWidget that draws whatever it is told, whenever it is told to. The

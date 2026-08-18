@@ -6,7 +6,7 @@ Everything runs in a **local Python environment** — real CPython, your machine
 
 ## The surface
 
-- **Activity bar → Scikit-Learner** (flask icon): four sidebar views.
+- **Activity bar → Scikit-Learner** (the scikit-learn spark): four sidebar views.
   - **Dataset** — workspace CSVs when nothing is loaded; the loaded file plus target / features / task / validation rows (click to change) once there is.
   - **Models** — the catalog as a checkbox tree grouped by category; ▶ in the header trains the checked set, *Train all* in the overflow menu.
   - **Runs** — ranked results with scores; running / queued / failed states live here during training. Click a run to plot it; expand it for its metrics and hyperparameters.
